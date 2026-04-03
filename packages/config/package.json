@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "name": "@polymeer/config",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "fmt": "prettier --check \"**/*.{json,js,ts,jsx,tsx,html}\"",
+    "fmt:fix": "prettier --write \"**/*.{json,js,ts,jsx,tsx,html}\""
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-react": "^7",
+    "eslint-plugin-react-hooks": "^7",
+    "eslint-plugin-react-refresh": "^0.5",
+    "eslint-plugin-simple-import-sort": "^12",
+    "prettier": "catalog:",
+    "typescript-eslint": "catalog:"
+  }
+}

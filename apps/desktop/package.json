@@ -1,0 +1,45 @@
+{
+  "name": "@polymeer/desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "app:dev": "tauri dev",
+    "ui:dev": "vite",
+    "ui:build": "vite build",
+    "lint": "eslint",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@polymeer/ui": "workspace:*",
+    "@tanstack/react-form": "^1",
+    "@tanstack/react-query": "^5",
+    "@tanstack/react-router": "^1",
+    "@tanstack/react-table": "^8",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "next-themes": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tailwindcss": "^4"
+  },
+  "devDependencies": {
+    "@polymeer/config": "workspace:*",
+    "@tailwindcss/vite": "^4",
+    "@tanstack/react-devtools": "^0.10",
+    "@tanstack/react-router-devtools": "^1",
+    "@tanstack/router-plugin": "^1",
+    "@tauri-apps/cli": "^2",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "eslint": "catalog:",
+    "jsdom": "catalog:",
+    "prettier": "catalog:",
+    "prettier-plugin-tailwindcss": "^0.7",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-svgr": "catalog:"
+  }
+}

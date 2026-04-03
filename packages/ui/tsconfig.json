@@ -1,0 +1,15 @@
+{
+  "extends": "@polymeer/config/typescript/tsconfig.react.json",
+  "include": ["src"],
+  "compilerOptions": {
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationDir": "dist",
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "skipLibCheck": true,
+    "paths": {
+      "@polymeer/ui/*": ["./src/*"]
+    }
+  }
+}

@@ -1,0 +1,47 @@
+packages:
+  - apps/*
+  - packages/*
+
+autoInstallPeers: true
+
+catalog:
+  '@cloudflare/vite-plugin': ^1
+  '@eslint/js': ^10
+  '@hono/zod-validator': ^0.7
+  '@hugeicons/core-free-icons': ^4
+  '@hugeicons/react': ^1
+  '@sentry/cloudflare': ^10
+  '@sentry/react': ^10
+  '@sentry/tanstackstart-react': ^10
+  '@trpc/client': ^11
+  '@trpc/server': ^11
+  '@trpc/tanstack-react-query': ^11
+  '@types/node': ^24
+  '@types/react': ^19
+  '@types/react-dom': ^19
+  '@vitejs/plugin-react': ^5
+  dayjs: ^1
+  eslint: ^10
+  i18next: ^26
+  jsdom: ^29
+  next-themes: 0.4.6
+  prettier: ^3
+  react: ^19
+  react-dom: ^19
+  react-i18next: ^17
+  tailwindcss: ^4
+  typescript: ^6
+  typescript-eslint: ^8
+  vite: ^7
+  vite-plugin-svgr: ^5
+  vitest: ^4.1.4
+  wrangler: ^4
+
+hoist: true
+
+nodeLinker: hoisted
+
+onlyBuiltDependencies:
+  - better-sqlite3
+
+preferFrozenLockfile: true

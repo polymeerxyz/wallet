@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@import "../../../packages/ui/src/index.css";
+@source "../../../packages/ui/src";
+
+@theme inline {
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+}
+
+:root {
+  --success: oklch(0.627 0.194 149.214);
+  --warning: oklch(0.646 0.222 41.116);
+}
+
+.dark {
+  --success: oklch(0.627 0.194 149.214);
+  --warning: oklch(0.646 0.222 41.116);
+}

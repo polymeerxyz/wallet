@@ -1,0 +1,52 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "kill:ui",
+      "type": "shell",
+      "command": "lsof -ti:1420 | xargs kill -9 || true",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "ui:dev",
+      "type": "shell",
+      "dependsOn": "kill:ui",
+      "isBackground": true,
+      "command": "pnpm",
+      "args": ["ui:dev"],
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": [
+          {
+            "regexp": "^([^\\s].*):(\\d+):(\\d+):\\s+(error|warning):\\s+(.*)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "severity": 4,
+            "message": 5
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\s*>\\s*vite",
+          "endsPattern": "^\\s*➜\\s+Local:"
+        }
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/apps/desktop"
+      }
+    },
+    {
+      "label": "ui:build",
+      "type": "shell",
+      "command": "pnpm",
+      "args": ["ui:build"],
+      "options": {
+        "cwd": "${workspaceFolder}/apps/desktop"
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "extends": "@polymeer/config/typescript/tsconfig.react.json",
+  "include": ["src", "*.mjs"],
+  "compilerOptions": {
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "types": ["vite/client"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

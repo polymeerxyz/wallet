@@ -12,9 +12,9 @@
   },
   "dependencies": {
     "@ckb-ccc/core": "1.12.5",
-    "@ledgerhq/hw-transport": "6.34.1",
-    "@ledgerhq/hw-transport-webhid": "6.34.0",
-    "@noble/curves": "2.0.1",
+    "@ledgerhq/hw-transport": "6.35.0",
+    "@ledgerhq/hw-transport-webhid": "6.35.0",
+    "@noble/curves": "2.2.0",
     "@scure/bip32": "2.0.1",
     "bip32-path": "0.4.2",
     "ckb-light-client-js": "1.0.3",

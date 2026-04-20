@@ -2,6 +2,7 @@ import { ThemeProvider, Toaster, TooltipProvider } from "@polymeer/ui"
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 
+import { AnalyticsTracker } from "@/components/analytics-tracker"
 import { Layout } from "@/components/layout"
 
 type RouteContext = Record<string, never>
@@ -13,6 +14,7 @@ export const Route = createRootRouteWithContext<RouteContext>()({
 function RootComponent() {
   return (
     <RootDocument>
+      <AnalyticsTracker />
       <ThemeProvider defaultTheme="light" disableTransitionOnChange>
         <Toaster />
         <TooltipProvider>

@@ -18,22 +18,24 @@ export function Layout({ children }: LayoutProps) {
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
           <div className="flex items-center">
             <Link to="/" className="group flex items-center gap-3">
-              <div className="bg-primary shadow-primary/20 flex h-9 w-9 items-center justify-center rounded-xl transition-all group-active:scale-95">
-                <span className="text-secondary text-base font-bold">P</span>
-              </div>
+              <img
+                src="/logo.svg"
+                alt="Polymeer Logo"
+                className="shadow-primary/20 h-9 w-9 p-1 rounded-xl transition-all group-active:scale-95"
+              />
               <span className="text-foreground hidden text-lg font-bold sm:block">Polymeer</span>
             </Link>
             <nav className="ml-10 hidden items-center gap-8 md:flex">
               <Link
                 to="/"
-                className="text-muted-foreground hover:text-foreground text-tiny font-semibold uppercase transition-colors"
+                className="text-muted-foreground hover:text-foreground text-tiny font-semibold transition-colors"
                 activeProps={{ className: "text-foreground" }}
               >
                 Overview
               </Link>
               <Link
                 to="/dao"
-                className="text-muted-foreground hover:text-foreground text-tiny font-semibold uppercase transition-colors"
+                className="text-muted-foreground hover:text-foreground text-tiny font-semibold transition-colors"
                 activeProps={{ className: "text-foreground" }}
               >
                 DAO

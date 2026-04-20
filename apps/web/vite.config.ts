@@ -12,6 +12,18 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "")
 
   return {
+    build: {
+      rolldownOptions: {
+        output: {
+          minify: {
+            compress: {
+              dropConsole: true,
+              dropDebugger: true,
+            },
+          },
+        },
+      },
+    },
     define: {
       "process.env.VITE_GTM_ID": JSON.stringify(env.VITE_GTM_ID ?? ""),
     },
@@ -26,34 +38,53 @@ export default defineConfig(({ mode }) => {
       svgr(),
       VitePWA({
         registerType: "autoUpdate",
-        includeAssets: ["/icons/icon-192x192.png", "/icons/icon-512x512.png"],
+        includeAssets: [
+          "favicon.ico",
+          "favicon.svg",
+          "apple-touch-icon-180x180.png",
+          "icon-192x192.png",
+          "icon-512x512.png",
+        ],
         manifest: {
-          short_name: "Polymeer Wallet",
+          short_name: "Polymeer",
           name: "Polymeer Wallet",
           id: "/",
-          description: "Polymeer Wallet",
+          description: "Polymeer - Hardware Wallet for Nervos Network",
           icons: [
             {
-              src: "/icons/icon-192x192.png",
+              src: "icon-192x192.png",
               type: "image/png",
               sizes: "192x192",
               purpose: "any maskable",
             },
             {
-              src: "/icons/icon-512x512.png",
+              src: "icon-256x256.png",
+              type: "image/png",
+              sizes: "256x256",
+              purpose: "any",
+            },
+            {
+              src: "icon-384x384.png",
+              type: "image/png",
+              sizes: "384x384",
+              purpose: "any",
+            },
+            {
+              src: "icon-512x512.png",
               type: "image/png",
               sizes: "512x512",
               purpose: "any maskable",
             },
           ],
-          start_url: "/app",
+          start_url: "/",
           scope: "/",
           display: "standalone",
           orientation: "portrait",
           theme_color: "#FFFFFF",
           background_color: "#FFFFFF",
-          related_applications: [],
-          prefer_related_applications: false,
+        },
+        devOptions: {
+          enabled: true,
         },
       }),
       {

@@ -17,4 +17,7 @@ export const Route = createFileRoute("/connect")({
       })
     }
   },
+  head: () => ({
+    meta: [{ title: "Connect" }],
+  }),
 })

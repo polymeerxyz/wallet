@@ -8,20 +8,13 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
-
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
-
-const AuthenticatedIndexLazyRouteImport = createFileRoute('/_authenticated/')()
-const AuthenticatedTransactionsLazyRouteImport = createFileRoute(
-  '/_authenticated/transactions',
-)()
-const AuthenticatedSendLazyRouteImport = createFileRoute(
-  '/_authenticated/send',
-)()
-const AuthenticatedDaoLazyRouteImport = createFileRoute('/_authenticated/dao')()
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
+import { Route as AuthenticatedSendRouteImport } from './routes/_authenticated/send'
+import { Route as AuthenticatedDaoRouteImport } from './routes/_authenticated/dao'
 
 const ConnectRoute = ConnectRouteImport.update({
   id: '/connect',
@@ -32,29 +25,29 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedIndexLazyRoute = AuthenticatedIndexLazyRouteImport.update({
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedRoute,
 } as any).lazy(() =>
   import('./routes/_authenticated/index.lazy').then((d) => d.Route),
 )
-const AuthenticatedTransactionsLazyRoute =
-  AuthenticatedTransactionsLazyRouteImport.update({
+const AuthenticatedTransactionsRoute =
+  AuthenticatedTransactionsRouteImport.update({
     id: '/transactions',
     path: '/transactions',
     getParentRoute: () => AuthenticatedRoute,
   } as any).lazy(() =>
     import('./routes/_authenticated/transactions.lazy').then((d) => d.Route),
   )
-const AuthenticatedSendLazyRoute = AuthenticatedSendLazyRouteImport.update({
+const AuthenticatedSendRoute = AuthenticatedSendRouteImport.update({
   id: '/send',
   path: '/send',
   getParentRoute: () => AuthenticatedRoute,
 } as any).lazy(() =>
   import('./routes/_authenticated/send.lazy').then((d) => d.Route),
 )
-const AuthenticatedDaoLazyRoute = AuthenticatedDaoLazyRouteImport.update({
+const AuthenticatedDaoRoute = AuthenticatedDaoRouteImport.update({
   id: '/dao',
   path: '/dao',
   getParentRoute: () => AuthenticatedRoute,
@@ -63,27 +56,27 @@ const AuthenticatedDaoLazyRoute = AuthenticatedDaoLazyRouteImport.update({
 )
 
 export interface FileRoutesByFullPath {
-  '/': typeof AuthenticatedIndexLazyRoute
+  '/': typeof AuthenticatedIndexRoute
   '/connect': typeof ConnectRoute
-  '/dao': typeof AuthenticatedDaoLazyRoute
-  '/send': typeof AuthenticatedSendLazyRoute
-  '/transactions': typeof AuthenticatedTransactionsLazyRoute
+  '/dao': typeof AuthenticatedDaoRoute
+  '/send': typeof AuthenticatedSendRoute
+  '/transactions': typeof AuthenticatedTransactionsRoute
 }
 export interface FileRoutesByTo {
   '/connect': typeof ConnectRoute
-  '/dao': typeof AuthenticatedDaoLazyRoute
-  '/send': typeof AuthenticatedSendLazyRoute
-  '/transactions': typeof AuthenticatedTransactionsLazyRoute
-  '/': typeof AuthenticatedIndexLazyRoute
+  '/dao': typeof AuthenticatedDaoRoute
+  '/send': typeof AuthenticatedSendRoute
+  '/transactions': typeof AuthenticatedTransactionsRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/connect': typeof ConnectRoute
-  '/_authenticated/dao': typeof AuthenticatedDaoLazyRoute
-  '/_authenticated/send': typeof AuthenticatedSendLazyRoute
-  '/_authenticated/transactions': typeof AuthenticatedTransactionsLazyRoute
-  '/_authenticated/': typeof AuthenticatedIndexLazyRoute
+  '/_authenticated/dao': typeof AuthenticatedDaoRoute
+  '/_authenticated/send': typeof AuthenticatedSendRoute
+  '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,45 +118,45 @@ declare module '@tanstack/react-router' {
       id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedIndexLazyRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/transactions': {
       id: '/_authenticated/transactions'
       path: '/transactions'
       fullPath: '/transactions'
-      preLoaderRoute: typeof AuthenticatedTransactionsLazyRouteImport
+      preLoaderRoute: typeof AuthenticatedTransactionsRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/send': {
       id: '/_authenticated/send'
       path: '/send'
       fullPath: '/send'
-      preLoaderRoute: typeof AuthenticatedSendLazyRouteImport
+      preLoaderRoute: typeof AuthenticatedSendRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dao': {
       id: '/_authenticated/dao'
       path: '/dao'
       fullPath: '/dao'
-      preLoaderRoute: typeof AuthenticatedDaoLazyRouteImport
+      preLoaderRoute: typeof AuthenticatedDaoRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
 interface AuthenticatedRouteChildren {
-  AuthenticatedDaoLazyRoute: typeof AuthenticatedDaoLazyRoute
-  AuthenticatedSendLazyRoute: typeof AuthenticatedSendLazyRoute
-  AuthenticatedTransactionsLazyRoute: typeof AuthenticatedTransactionsLazyRoute
-  AuthenticatedIndexLazyRoute: typeof AuthenticatedIndexLazyRoute
+  AuthenticatedDaoRoute: typeof AuthenticatedDaoRoute
+  AuthenticatedSendRoute: typeof AuthenticatedSendRoute
+  AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedDaoLazyRoute: AuthenticatedDaoLazyRoute,
-  AuthenticatedSendLazyRoute: AuthenticatedSendLazyRoute,
-  AuthenticatedTransactionsLazyRoute: AuthenticatedTransactionsLazyRoute,
-  AuthenticatedIndexLazyRoute: AuthenticatedIndexLazyRoute,
+  AuthenticatedDaoRoute: AuthenticatedDaoRoute,
+  AuthenticatedSendRoute: AuthenticatedSendRoute,
+  AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

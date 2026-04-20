@@ -1,9 +1,10 @@
 name: Deploy Web to GitHub Pages
+run-name: Deploy Web to GitHub Pages - ${{ github.ref_name }}
 
 on:
   push:
     branches:
-      - main
+      - v2
     paths:
       - "apps/web/**"
       - "packages/**"

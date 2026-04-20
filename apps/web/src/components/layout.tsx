@@ -14,19 +14,26 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   return (
     <div className="bg-background selection:bg-primary/5 selection:text-primary flex min-h-screen flex-col font-sans antialiased">
-      <header className="border-border bg-background/50 sticky top-0 z-50 w-full border-b backdrop-blur-md">
+      <header className="border-border/40 bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
           <div className="flex items-center">
-            <Link to="/" className="group flex items-center gap-2.5">
-              <div className="bg-primary flex h-9 w-9 items-center justify-center rounded-lg transition-all">
-                <span className="text-secondary text-lg font-black tracking-tighter">P</span>
+            <Link to="/" className="group flex items-center gap-3">
+              <div className="bg-primary shadow-primary/20 flex h-9 w-9 items-center justify-center rounded-xl transition-all group-active:scale-95">
+                <span className="text-secondary text-base font-bold">P</span>
               </div>
-              <span className="text-foreground hidden text-xl font-extrabold tracking-tight sm:block">Polymeer</span>
+              <span className="text-foreground hidden text-lg font-bold sm:block">Polymeer</span>
             </Link>
-            <nav className="ml-8 hidden items-center gap-6 md:flex">
+            <nav className="ml-10 hidden items-center gap-8 md:flex">
+              <Link
+                to="/"
+                className="text-muted-foreground hover:text-foreground text-tiny font-semibold uppercase transition-colors"
+                activeProps={{ className: "text-foreground" }}
+              >
+                Overview
+              </Link>
               <Link
                 to="/dao"
-                className="text-muted-foreground hover:text-foreground text-sm font-bold tracking-tight transition-colors"
+                className="text-muted-foreground hover:text-foreground text-tiny font-semibold uppercase transition-colors"
                 activeProps={{ className: "text-foreground" }}
               >
                 DAO
@@ -34,15 +41,16 @@ export function Layout({ children }: LayoutProps) {
             </nav>
           </div>
 
-          <div className="bg-muted/20 flex items-center gap-1 rounded-xl p-1">
+          <div className="bg-muted/10 border-border/20 flex items-center gap-1 rounded-xl border p-1 backdrop-blur-sm">
             <NetworkSwitch />
+            <div className="bg-border/20 mx-1 h-4 w-[1px]" />
             <LanguageSelect />
             <ThemeSwitch />
           </div>
         </div>
       </header>
 
-      <main className="flex flex-1 flex-col items-center px-6 py-12 lg:py-20">
+      <main className="flex flex-1 flex-col items-center px-6 py-4 lg:py-8">
         <div className="flex w-full max-w-4xl flex-col items-center">{children}</div>
       </main>
 

@@ -87,7 +87,7 @@ export function SendPage() {
 
   if (isLoadingAddress) {
     return (
-      <div className="w-full max-w-lg py-20">
+      <div className="w-full max-w-lg py-6">
         <Skeleton className="h-64 w-full rounded-3xl" />
       </div>
     )
@@ -96,7 +96,7 @@ export function SendPage() {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 w-full max-w-2xl duration-700">
       <Card className="border-border/50 bg-muted/10 overflow-hidden rounded-3xl border shadow-none">
-        <CardHeader className="border-border/50 border-b px-6 py-5">
+        <CardHeader className="border-border/50 border-b px-6 py-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl transition-all" onClick={onBack}>
               <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
@@ -107,19 +107,17 @@ export function SendPage() {
 
         <CardContent className="p-6">
           {step === "input" && (
-            <div className="animate-in fade-in space-y-6 duration-300">
+            <div className="animate-in fade-in space-y-5 duration-300">
               {/* Recipient Input */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between px-1">
-                  <span className="text-muted-foreground/70 text-[10px] font-bold tracking-[0.2em] uppercase">
-                    Recipient
-                  </span>
+                  <span className="text-muted-foreground/70 text-[10px] font-bold uppercase">Recipient</span>
                   <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
                     <DialogTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-primary h-auto p-0 text-[10px] font-black tracking-wider uppercase hover:bg-transparent"
+                        className="text-primary h-auto p-0 text-[10px] font-bold uppercase hover:bg-transparent"
                       >
                         <HugeiconsIcon icon={QrCode01Icon} size={12} className="mr-1.5" />
                         Scan QR
@@ -133,13 +131,13 @@ export function SendPage() {
                     </DialogContent>
                   </Dialog>
                 </div>
-                <div className="bg-muted/10 border-border/50 relative flex items-center rounded-xl border px-1">
+                <div className="bg-muted/10 border-border/50 relative flex items-center rounded-xl border">
                   <Input
                     id="recipient"
                     placeholder="Enter CKB address"
                     value={recipient}
                     onChange={(e) => setRecipient(e.target.value)}
-                    className="h-12 border-none bg-transparent text-sm font-medium shadow-none focus-visible:ring-0"
+                    className="h-11 border-none bg-transparent text-sm font-medium shadow-none focus-visible:ring-0"
                   />
                   <div className="text-muted-foreground/50 pr-3">
                     <HugeiconsIcon icon={UserIcon} size={16} />
@@ -148,53 +146,51 @@ export function SendPage() {
               </div>
 
               {/* Amount & Fee Rate Grid */}
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-4 md:grid-cols-2">
                 {/* Amount Input */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between px-1">
-                    <span className="text-muted-foreground/70 text-[10px] font-bold tracking-[0.2em] uppercase">
-                      Amount
-                    </span>
+                    <span className="text-muted-foreground/70 text-[10px] font-bold uppercase">Amount</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground/60 text-[10px] font-bold tracking-tighter uppercase">
+                      <span className="text-muted-foreground/60 text-[10px] font-bold uppercase">
                         Bal: {isBalanceLoading ? "..." : balance ? formatAmount(balance) : "0.00"}
                       </span>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-primary h-auto p-0 text-[10px] font-black tracking-wider uppercase hover:bg-transparent"
+                        className="text-primary h-auto p-0 text-[10px] font-bold uppercase hover:bg-transparent"
                         onClick={handleMaxAmount}
                       >
                         Max
                       </Button>
                     </div>
                   </div>
-                  <div className="bg-muted/10 border-border/50 relative flex items-center rounded-xl border p-1">
+                  <div className="bg-muted/10 border-border/50 relative flex items-center rounded-xl border p-0.5">
                     <Input
                       id="amount"
                       type="number"
-                      placeholder="Minimum 61 CKB"
+                      placeholder="Min 61 CKB"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      className="h-12 border-none bg-transparent text-sm font-medium shadow-none focus-visible:ring-0"
+                      className="h-11 border-none bg-transparent text-sm font-medium shadow-none focus-visible:ring-0"
                     />
-                    <span className="text-muted-foreground/50 pr-4 text-[10px] font-black uppercase">CKB</span>
+                    <span className="text-muted-foreground/50 shrink-0 pr-4 text-[10px] font-bold uppercase">CKB</span>
                   </div>
                 </div>
 
                 {/* Fee Rate Input */}
                 <div className="space-y-2">
-                  <label className="text-muted-foreground/70 px-1 text-[10px] font-bold tracking-[0.2em] uppercase">
+                  <label className="text-muted-foreground/70 px-1 text-[10px] font-bold uppercase">
                     Fee Rate (shannons/kB)
                   </label>
-                  <div className="bg-muted/10 border-border/50 relative flex items-center rounded-xl border p-1">
+                  <div className="bg-muted/10 border-border/50 relative flex items-center rounded-xl border p-0.5">
                     <Input
                       type="number"
                       value={feeRate}
                       onChange={(e) => setFeeRate(e.target.value)}
-                      className="h-12 border-none bg-transparent text-sm font-medium shadow-none focus-visible:ring-0"
+                      className="h-11 border-none bg-transparent text-sm font-medium shadow-none focus-visible:ring-0"
                     />
-                    <div className="text-muted-foreground/40 pr-4">
+                    <div className="text-muted-foreground/40 shrink-0 pr-4">
                       <HugeiconsIcon icon={Clock01Icon} size={16} />
                     </div>
                   </div>
@@ -202,7 +198,7 @@ export function SendPage() {
               </div>
 
               <Button
-                className="mt-6 h-14 w-full rounded-2xl text-base font-bold tracking-tight shadow-none transition-all active:scale-[0.98]"
+                className="mt-6 h-12 w-full rounded-2xl text-base font-bold shadow-none transition-all active:scale-[0.98]"
                 disabled={!recipient || !amount || isBalanceLoading || isReadOnly}
                 onClick={handleReview}
               >
@@ -212,28 +208,22 @@ export function SendPage() {
           )}
 
           {step === "review" && (
-            <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
-              <div className="bg-muted/15 border-border/50 space-y-5 rounded-2xl border p-5">
+            <div className="animate-in fade-in slide-in-from-right-4 space-y-5 duration-300">
+              <div className="bg-muted/15 border-border/50 space-y-4 rounded-2xl border p-5">
                 <div className="space-y-1">
-                  <span className="text-muted-foreground/60 text-[10px] font-bold tracking-[0.2em] uppercase">
-                    Recipient
-                  </span>
+                  <span className="text-muted-foreground/60 text-[10px] font-bold uppercase">Recipient</span>
                   <p className="text-foreground text-[13px] leading-relaxed font-bold break-all opacity-90">
                     {recipient}
                   </p>
                 </div>
                 <div className="border-border/20 flex items-center justify-between border-t pt-4">
-                  <span className="text-muted-foreground/60 text-[10px] font-bold tracking-[0.2em] uppercase">
-                    Amount
-                  </span>
-                  <span className="text-foreground text-xl font-black tracking-tight">
+                  <span className="text-muted-foreground/60 text-[10px] font-bold uppercase">Amount</span>
+                  <span className="text-foreground text-xl font-bold">
                     {amount} <span className="text-xs font-bold opacity-60">CKB</span>
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground/60 text-[10px] font-bold tracking-[0.2em] uppercase">
-                    Network Fee
-                  </span>
+                  <span className="text-muted-foreground/60 text-[10px] font-bold uppercase">Network Fee</span>
                   <span className="text-muted-foreground/80 text-sm font-semibold tabular-nums">
                     {estimatedFee ? formatAmount(BigInt(estimatedFee)) : "..."} CKB
                   </span>
@@ -242,14 +232,14 @@ export function SendPage() {
 
               <div className="flex flex-col gap-2">
                 <Button
-                  className="h-14 w-full rounded-2xl text-base font-bold tracking-tight shadow-none transition-all active:scale-[0.98]"
+                  className="h-12 w-full rounded-2xl text-base font-bold shadow-none transition-all active:scale-[0.98]"
                   onClick={handleConfirm}
                 >
                   Confirm & Sign
                 </Button>
                 <Button
                   variant="ghost"
-                  className="text-muted-foreground hover:text-foreground h-10 w-full rounded-xl text-xs font-bold tracking-widest uppercase transition-colors"
+                  className="text-muted-foreground hover:text-foreground h-10 w-full rounded-xl text-xs font-bold uppercase transition-colors"
                   onClick={() => setStep("input")}
                 >
                   Go Back

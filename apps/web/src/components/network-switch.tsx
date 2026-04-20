@@ -49,7 +49,7 @@ export function NetworkSwitch() {
             className="hover:bg-background/80 h-9 gap-2 rounded-xl border-none px-3 shadow-none"
           >
             <HugeiconsIcon icon={Database01Icon} size={14} className="text-muted-foreground" />
-            <span className="text-xs font-bold tracking-wider uppercase">{network}</span>
+            <span className="text-xs font-bold uppercase">{network}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">

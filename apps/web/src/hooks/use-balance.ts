@@ -1,6 +1,6 @@
 import type { ScriptLike } from "@ckb-ccc/core"
 import { fixedPointFrom } from "@ckb-ccc/core"
-import { useQuery } from "@tanstack/react-query"
+import { useQueries, useQuery } from "@tanstack/react-query"
 
 import { useWalletStore } from "@/stores/wallet.store"
 
@@ -19,5 +19,21 @@ export function useBalance(scripts: ScriptLike[]) {
       return fixedPointFrom(BigInt(balanceStr))
     },
     enabled: scripts.length > 0,
+  })
+}
+
+export function useBalances(scriptsWithPaths: { script: ScriptLike; path: string }[]) {
+  const network = useWalletStore((s) => s.network)
+  const worker = useCkbWorker()
+
+  return useQueries({
+    queries: scriptsWithPaths.map(({ script, path }) => ({
+      queryKey: ["ckb-balance", network, script.args, path],
+      queryFn: async () => {
+        const balanceStr = await worker.getBalance([script])
+        return fixedPointFrom(BigInt(balanceStr))
+      },
+      enabled: !!script,
+    })),
   })
 }

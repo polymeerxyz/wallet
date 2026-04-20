@@ -43,16 +43,16 @@ export function TransactionPage() {
 
   if (isLoadingAddress) {
     return (
-      <div className="w-full max-w-4xl py-20">
+      <div className="w-full max-w-4xl py-6">
         <Skeleton className="h-64 w-full rounded-3xl" />
       </div>
     )
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 w-full max-w-4xl space-y-6 py-4 duration-700">
+    <div className="animate-in fade-in slide-in-from-bottom-4 w-full max-w-4xl space-y-4 duration-700">
       <Card className="border-border/50 bg-muted/10 overflow-hidden rounded-3xl border shadow-none">
-        <CardHeader className="border-border/50 border-b px-6 py-5">
+        <CardHeader className="border-border/50 border-b px-6 py-4">
           <div className="flex items-center gap-4">
             <Link to="/">
               <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl transition-all">
@@ -72,16 +72,12 @@ export function TransactionPage() {
             <Table>
               <TableHeader className="bg-muted/10">
                 <TableRow className="border-border/20 border-b hover:bg-transparent">
-                  <TableHead className="text-muted-foreground/60 h-12 pl-6 text-[10px] font-bold tracking-[0.2em] uppercase">
+                  <TableHead className="text-muted-foreground/60 h-10 pl-6 text-[10px] font-bold uppercase">
                     Transaction
                   </TableHead>
-                  <TableHead className="text-muted-foreground/60 h-12 text-[10px] font-bold tracking-[0.2em] uppercase">
-                    Date
-                  </TableHead>
-                  <TableHead className="text-muted-foreground/60 h-12 text-[10px] font-bold tracking-[0.2em] uppercase">
-                    Type
-                  </TableHead>
-                  <TableHead className="text-muted-foreground/60 h-12 pr-6 text-right text-[10px] font-bold tracking-[0.2em] uppercase">
+                  <TableHead className="text-muted-foreground/60 h-10 text-[10px] font-bold uppercase">Date</TableHead>
+                  <TableHead className="text-muted-foreground/60 h-10 text-[10px] font-bold uppercase">Type</TableHead>
+                  <TableHead className="text-muted-foreground/60 h-10 pr-6 text-right text-[10px] font-bold uppercase">
                     Amount
                   </TableHead>
                 </TableRow>
@@ -90,7 +86,7 @@ export function TransactionPage() {
                 {isTxLoading && transactions.length === 0 ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i} className="border-border/10 border-b">
-                      <TableCell colSpan={4} className="px-6 py-6">
+                      <TableCell colSpan={4} className="px-6 py-4">
                         <Skeleton className="bg-muted/20 h-4 w-full rounded-lg" />
                       </TableCell>
                     </TableRow>
@@ -98,7 +94,7 @@ export function TransactionPage() {
                 ) : transactions.length === 0 ? (
                   <TableRow className="hover:bg-transparent">
                     <TableCell colSpan={4} className="h-64 text-center">
-                      <div className="flex flex-col items-center justify-center gap-2 py-10">
+                      <div className="flex flex-col items-center justify-center gap-2 py-8">
                         <p className="text-muted-foreground/60 text-sm font-bold">No activity yet</p>
                         <p className="text-muted-foreground/40 text-[10px] font-medium italic">
                           Transactions will appear here after confirmation
@@ -108,8 +104,11 @@ export function TransactionPage() {
                   </TableRow>
                 ) : (
                   transactions.map((tx) => (
-                    <TableRow key={tx.hash} className="border-border/10 hover:bg-muted/10 border-b transition-colors">
-                      <TableCell className="py-5 pl-6">
+                    <TableRow
+                      key={tx.hash}
+                      className="border-border/10 hover:bg-muted/10 border-b text-[13px] transition-colors"
+                    >
+                      <TableCell className="py-3.5 pl-6">
                         <a
                           href={getExplorerLink(tx.hash, network)}
                           target="_blank"
@@ -120,14 +119,14 @@ export function TransactionPage() {
                           {tx.hash.substring(0, 10)}...{tx.hash.substring(tx.hash.length - 8)}
                         </a>
                       </TableCell>
-                      <TableCell className="py-5">
+                      <TableCell className="py-3.5">
                         <span className="text-muted-foreground/70 text-xs font-semibold">{tx.date}</span>
                       </TableCell>
-                      <TableCell className="py-5">
+                      <TableCell className="py-3.5">
                         <Badge
                           variant="secondary"
                           className={cn(
-                            "rounded-lg border-none px-2.5 py-0.5 text-[9px] font-black tracking-widest uppercase shadow-none",
+                            "rounded-lg border-none px-2.5 py-0.5 text-[9px] font-bold uppercase shadow-none",
                             tx.type === TransactionType.RECEIVE_NATIVE_TOKEN
                               ? "bg-success/10 text-success"
                               : tx.type === TransactionType.SEND_NATIVE_TOKEN
@@ -140,7 +139,7 @@ export function TransactionPage() {
                       </TableCell>
                       <TableCell
                         className={cn(
-                          "py-5 pr-6 text-right text-sm font-black tracking-tight tabular-nums",
+                          "py-3.5 pr-6 text-right text-sm font-bold tabular-nums",
                           tx.type === TransactionType.RECEIVE_NATIVE_TOKEN || tx.type === TransactionType.UNLOCK_DAO
                             ? "text-success"
                             : "text-foreground opacity-90"
@@ -152,7 +151,7 @@ export function TransactionPage() {
                             : "-"}
                         </span>
                         {formatAmount(tx.amount)}
-                        <span className="ml-1 text-[9px] font-black tracking-tighter uppercase opacity-40">CKB</span>
+                        <span className="ml-1 text-[9px] font-bold uppercase opacity-40">CKB</span>
                       </TableCell>
                     </TableRow>
                   ))
@@ -161,12 +160,12 @@ export function TransactionPage() {
             </Table>
           </div>
           {hasNextPage && (
-            <div className="bg-muted/5 border-border/10 flex justify-center border-t py-8">
+            <div className="bg-muted/5 border-border/10 flex justify-center border-t py-4">
               <Button
                 variant="ghost"
                 onClick={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
-                className="text-muted-foreground/80 hover:text-foreground hover:bg-muted/10 h-9 rounded-xl px-6 text-[10px] font-bold tracking-widest uppercase transition-all"
+                className="text-muted-foreground/80 hover:text-foreground hover:bg-muted/10 h-8 rounded-xl px-6 text-[10px] font-bold uppercase transition-all"
               >
                 {isFetchingNextPage ? "Syncing..." : "Load More Activity"}
               </Button>

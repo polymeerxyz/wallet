@@ -9,7 +9,7 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">
         <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
           <div className="flex flex-col items-center gap-2 md:items-start md:gap-1">
-            <h3 className="text-foreground text-lg font-bold tracking-tight">Polymeer Wallet</h3>
+            <h3 className="text-foreground text-lg font-bold">Polymeer Wallet</h3>
             <p className="text-muted-foreground text-sm">A secure and open-source wallet for Nervos CKB.</p>
           </div>
           <div className="flex items-center gap-6">

@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     define: {
-      "process.env.VITE_GTM_ID": JSON.stringify(env.VITE_GTM_ID),
+      "process.env.VITE_GTM_ID": JSON.stringify(env.VITE_GTM_ID ?? ""),
     },
     plugins: [
       nodePolyfills(),

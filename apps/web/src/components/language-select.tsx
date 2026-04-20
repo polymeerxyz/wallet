@@ -22,7 +22,7 @@ export function LanguageSelect() {
           className="hover:bg-background/80 h-9 gap-2 rounded-xl border-none px-3 shadow-none"
         >
           <HugeiconsIcon icon={Globe02Icon} size={14} className="text-muted-foreground" />
-          <span className="text-xs font-bold tracking-wider uppercase">{lang}</span>
+          <span className="text-xs font-bold uppercase">{lang}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[140px]">

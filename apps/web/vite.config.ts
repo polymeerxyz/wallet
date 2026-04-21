@@ -6,10 +6,13 @@ import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import react from "@vitejs/plugin-react"
 import { defineConfig, loadEnv } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
+import sitemap from "vite-plugin-sitemap"
 import svgr from "vite-plugin-svgr"
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "")
+
+  const VITE_GTM_ID = env.VITE_GTM_ID ?? ""
 
   return {
     build: {
@@ -25,7 +28,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     define: {
-      "process.env.VITE_GTM_ID": JSON.stringify(env.VITE_GTM_ID ?? ""),
+      "process.env.VITE_GTM_ID": JSON.stringify(VITE_GTM_ID),
     },
     plugins: [
       nodePolyfills(),
@@ -36,61 +39,10 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       svgr(),
-      VitePWA({
-        registerType: "autoUpdate",
-        includeAssets: [
-          "favicon.ico",
-          "favicon.svg",
-          "apple-touch-icon-180x180.png",
-          "icon-192x192.png",
-          "icon-512x512.png",
-        ],
-        manifest: {
-          short_name: "Polymeer",
-          name: "Polymeer Wallet",
-          id: "/",
-          description: "Polymeer - Hardware Wallet for Nervos Network",
-          icons: [
-            {
-              src: "icon-192x192.png",
-              type: "image/png",
-              sizes: "192x192",
-              purpose: "any maskable",
-            },
-            {
-              src: "icon-256x256.png",
-              type: "image/png",
-              sizes: "256x256",
-              purpose: "any",
-            },
-            {
-              src: "icon-384x384.png",
-              type: "image/png",
-              sizes: "384x384",
-              purpose: "any",
-            },
-            {
-              src: "icon-512x512.png",
-              type: "image/png",
-              sizes: "512x512",
-              purpose: "any maskable",
-            },
-          ],
-          start_url: "/",
-          scope: "/",
-          display: "standalone",
-          orientation: "portrait",
-          theme_color: "#FFFFFF",
-          background_color: "#FFFFFF",
-        },
-        devOptions: {
-          enabled: true,
-        },
-      }),
       {
         name: "gtm-strategy",
         transformIndexHtml(html) {
-          if (!env.VITE_GTM_ID) {
+          if (!VITE_GTM_ID) {
             return html
               .replace(/<!-- Google Tag Manager -->[\s\S]*?<!-- End Google Tag Manager -->/g, "")
               .replace(
@@ -101,6 +53,86 @@ export default defineConfig(({ mode }) => {
           return html
         },
       },
+      sitemap({
+        hostname: "https://app.polymeer.xyz",
+        dynamicRoutes: ["/", "/connect", "/dao", "/transactions", "/send"],
+      }),
+      VitePWA({
+        registerType: "autoUpdate",
+        includeAssets: [
+          "favicon.ico",
+          "logo.svg",
+          "apple-touch-icon-*.png",
+          "pwa-*.png",
+          "sitemap.xml",
+          "robots.txt",
+        ],
+        manifest: {
+          short_name: "Polymeer",
+          name: "Polymeer Wallet",
+          id: "/",
+          description: "Polymeer - Hardware Wallet for Nervos Network",
+          icons: [
+            {
+              src: "pwa-64x64.png",
+              sizes: "64x64",
+              type: "image/png",
+            },
+            {
+              src: "pwa-192x192.png",
+              sizes: "192x192",
+              type: "image/png",
+            },
+            {
+              src: "pwa-256x256.png",
+              sizes: "256x256",
+              type: "image/png",
+            },
+            {
+              src: "pwa-384x384.png",
+              sizes: "384x384",
+              type: "image/png",
+            },
+            {
+              src: "pwa-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+            },
+            {
+              src: "maskable-icon-512x512.png",
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable",
+            },
+          ],
+          shortcuts: [
+            {
+              name: "Transactions",
+              url: "/transactions",
+              icons: [{ src: "pwa-192x192.png", sizes: "192x192" }],
+            },
+            {
+              name: "Send",
+              short_name: "Send",
+              url: "/send",
+              icons: [{ src: "pwa-192x192.png", sizes: "192x192" }],
+            },
+          ],
+          categories: ["finance", "utilities"],
+          start_url: "/",
+          scope: "/",
+          display: "standalone",
+          orientation: "portrait",
+          theme_color: "#E07B30",
+          background_color: "#ffffff",
+        },
+        workbox: {
+          navigateFallbackDenylist: [/^\/sitemap\.xml$/, /^\/robots\.txt$/],
+        },
+        devOptions: {
+          enabled: true,
+        },
+      }),
     ],
     resolve: {
       alias: {

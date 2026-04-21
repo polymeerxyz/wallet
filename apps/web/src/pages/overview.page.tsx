@@ -146,12 +146,6 @@ export function OverviewPage() {
             <DropdownMenuContent align="end" className="w-48 rounded-xl">
               <DropdownMenuItem
                 className="text-xs font-bold"
-                onClick={() => setDerivationStrategy(WalletDerivationStrategy.UTXO_BASED)}
-              >
-                UTXO / BIP 44
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-xs font-bold"
                 onClick={() => setDerivationStrategy(WalletDerivationStrategy.ACCOUNT_BASED)}
               >
                 Neuron Compatible
@@ -160,7 +154,13 @@ export function OverviewPage() {
                 className="text-xs font-bold"
                 onClick={() => setDerivationStrategy(WalletDerivationStrategy.SINGLE_ADDRESS)}
               >
-                Single Address
+                Fixed Address
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-xs font-bold"
+                onClick={() => setDerivationStrategy(WalletDerivationStrategy.UTXO_BASED)}
+              >
+                UTXO / BIP 44
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

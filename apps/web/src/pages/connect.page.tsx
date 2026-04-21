@@ -97,14 +97,14 @@ export function ConnectPage() {
                   desc: "Recommended for desktop users",
                 },
                 {
-                  value: WalletDerivationStrategy.UTXO_BASED,
-                  label: "Standard BIP-44",
-                  desc: "Enhanced privacy and security",
-                },
-                {
                   value: WalletDerivationStrategy.SINGLE_ADDRESS,
                   label: "Fixed Address",
                   desc: "Simplified one-address mode",
+                },
+                {
+                  value: WalletDerivationStrategy.UTXO_BASED,
+                  label: "UTXO / BIP-44",
+                  desc: "Enhanced privacy and security",
                 },
               ].map((item) => (
                 <Label

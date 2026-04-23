@@ -1,9 +1,10 @@
 import type { ScriptLike } from "@ckb-ccc/core"
+import { Script } from "@ckb-ccc/core"
 import type { TransactionHistoryItem as LibTransactionHistoryItem } from "@polymeer/lib"
 import { TransactionType } from "@polymeer/lib"
 import { useInfiniteQuery } from "@tanstack/react-query"
 
-import { useWalletStore } from "@/stores/wallet.store"
+import { useConfigStore } from "@/stores/config.store"
 
 import { useCkbWorker } from "./use-ckb-worker"
 
@@ -14,11 +15,12 @@ export interface TransactionHistoryItem extends Omit<LibTransactionHistoryItem, 
 }
 
 export function useTransactions(scripts: ScriptLike[]) {
-  const network = useWalletStore((s) => s.network)
+  const network = useConfigStore((s) => s.network)
+  const clientMode = useConfigStore((s) => s.clientMode)
   const worker = useCkbWorker()
 
   const query = useInfiniteQuery({
-    queryKey: ["ckb-transactions", network, scripts.map((s) => s.args).join("-")],
+    queryKey: ["ckb-transactions", network, clientMode, scripts.map((s) => Script.from(s).hash()).join("-")],
     queryFn: async ({ pageParam }) => {
       if (scripts.length === 0) return { transactions: [], cursors: {} }
 

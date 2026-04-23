@@ -1,12 +1,14 @@
 import type { Cell, Client, ClientBlockHeader, Epoch } from "@ckb-ccc/core"
 import {
   Address,
+  bytesFrom,
   calcDaoClaimEpoch,
   calcDaoProfit,
   CellOutput,
   fixedPointFrom,
   KnownScript,
   numFrom,
+  numLeFromBytes,
   numLeToBytes,
   Script,
   Transaction,
@@ -48,12 +50,17 @@ export async function getDaoAPY(client: Client): Promise<string> {
 }
 
 export async function getDaoCellInfo(client: Client, dao: Cell) {
+  const daoType = await Script.fromKnownScript(client, KnownScript.NervosDao, "0x")
+  if (!dao.cellOutput.type || dao.cellOutput.type.hash() !== daoType.hash()) {
+    return null
+  }
+
   const isDeposit = dao.outputData === "0x0000000000000000"
   const previousTxRes = await client.getTransactionWithHeader(dao.outPoint.txHash)
   if (!previousTxRes || !previousTxRes.header) {
     return null
   }
-  const { transaction: previousTx, header: currentHeader } = previousTxRes
+  const { header: currentHeader } = previousTxRes
   const tipHeader = await client.getTipHeader()
 
   if (isDeposit) {
@@ -65,13 +72,17 @@ export async function getDaoCellInfo(client: Client, dao: Cell) {
       targetEpoch: calcDaoClaimEpoch(currentHeader, tipHeader),
     }
   } else {
-    // It's a withdrawal cell, we need to find the original deposit block
-    const depositTxHash = previousTx.transaction.inputs[Number(dao.outPoint.index)].previousOutput.txHash
-    const depositTxRes = await client.getTransactionWithHeader(depositTxHash)
-    if (!depositTxRes || !depositTxRes.header) {
+    if (dao.outputData.length < 18) {
       return null
     }
-    const { header: depositHeader } = depositTxRes
+
+    const depositBlockNumber = numLeFromBytes(bytesFrom(dao.outputData))
+    const depositHeader = await client.getHeaderByNumber(depositBlockNumber)
+
+    if (!depositHeader) {
+      return null
+    }
+
     return {
       type: "withdraw",
       profit: getProfit(dao, depositHeader, currentHeader),
@@ -103,7 +114,6 @@ export async function buildDaoDeposit(
     outputsData: ["0x0000000000000000"],
   })
 
-  // Set capacity after type script is added but before inputs are completed
   tx.outputs[0].capacity = fixedPointFrom(amount, 8)
 
   await tx.addCellDepsOfKnownScripts(client, KnownScript.NervosDao)
@@ -127,10 +137,9 @@ export async function buildDaoAction(
   if (!previousTxRes || !previousTxRes.header) {
     throw new Error("Could not fetch transaction info for DAO cell")
   }
-  const { transaction: previousTx, header: currentHeader } = previousTxRes
+  const { header: currentHeader } = previousTxRes
 
   if (isDeposit) {
-    // Deposit -> Withdrawal (Phase 1)
     const blockNumber = currentHeader.number
     const tx = Transaction.from({
       headerDeps: [currentHeader.hash],
@@ -144,13 +153,12 @@ export async function buildDaoAction(
     await tx.completeFeeBy(signer, feeRate)
     return tx
   } else {
-    // Withdrawal -> Claim (Phase 2)
-    const depositTxHash = previousTx.transaction.inputs[Number(dao.outPoint.index)].previousOutput.txHash
-    const depositTxRes = await client.getTransactionWithHeader(depositTxHash)
-    if (!depositTxRes || !depositTxRes.header) {
-      throw new Error("Could not fetch deposit transaction info")
+    const depositBlockNumber = numLeFromBytes(bytesFrom(dao.outputData))
+    const depositHeader = await client.getHeaderByNumber(depositBlockNumber)
+
+    if (!depositHeader) {
+      throw new Error("Could not fetch deposit header")
     }
-    const { header: depositHeader } = depositTxRes
 
     const tx = Transaction.from({
       headerDeps: [currentHeader.hash, depositHeader.hash],
@@ -176,7 +184,6 @@ export async function buildDaoAction(
     await tx.completeInputsByCapacity(signer)
     await tx.completeFeeChangeToOutput(signer, 0, feeRate)
 
-    // Add profit
     const profit = getProfit(dao, depositHeader, currentHeader)
     tx.outputs[0].capacity = numFrom(tx.outputs[0].capacity) + profit
 

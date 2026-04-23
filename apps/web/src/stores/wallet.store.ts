@@ -22,15 +22,11 @@ export enum WalletDerivationStrategy {
 }
 
 interface WalletState {
-  network: "testnet" | "mainnet"
-  pendingNetwork: "testnet" | "mainnet" | null
   publicKey: string | null
   chainCode: string | null
   derivationStrategy: WalletDerivationStrategy
   isReadOnly: boolean
 
-  setNetwork: (network: "testnet" | "mainnet") => void
-  setPendingNetwork: (network: "testnet" | "mainnet" | null) => void
   setWallet: (payload: {
     publicKey: string
     chainCode: string
@@ -44,14 +40,10 @@ interface WalletState {
 export const useWalletStore = create<WalletState>()(
   persist(
     (set) => ({
-      network: "testnet",
-      pendingNetwork: null,
       publicKey: null,
       chainCode: null,
       derivationStrategy: WalletDerivationStrategy.ACCOUNT_BASED,
       isReadOnly: false,
-      setNetwork: (network) => set({ network }),
-      setPendingNetwork: (pendingNetwork) => set({ pendingNetwork }),
       setWallet: ({ publicKey, chainCode, derivationStrategy, isReadOnly = false }) =>
         set({ publicKey, chainCode, derivationStrategy, isReadOnly }),
       setDerivationStrategy: (derivationStrategy) => set({ derivationStrategy }),
@@ -60,7 +52,6 @@ export const useWalletStore = create<WalletState>()(
     {
       name: "wallet-storage",
       partialize: (state) => ({
-        network: state.network,
         publicKey: state.publicKey,
         chainCode: state.chainCode,
         derivationStrategy: state.derivationStrategy,

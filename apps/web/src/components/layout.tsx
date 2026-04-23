@@ -1,26 +1,11 @@
-import { DashboardSquare01Icon, Settings01Icon } from "@hugeicons/core-free-icons"
+import { DashboardSquare01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@polymeer/ui"
 import { Link } from "@tanstack/react-router"
 
 import { BlockNumberIndicator } from "./block-number-indicator"
 import { Footer } from "./footer"
-import { LanguageSelect } from "./language-select"
-import { NetworkSwitch } from "./network-switch"
-import { NetworkSwitchDialog } from "./network-switch-dialog"
+import { SettingsMenu } from "./settings-menu"
 import { SigningDialog } from "./signing-dialog"
-import { ThemeSwitch } from "./theme-switch"
 
 interface LayoutProps {
   children: React.ReactNode
@@ -48,66 +33,18 @@ export function Layout({ children }: LayoutProps) {
             <span className="hidden sm:inline">DAO</span>
           </Link>
 
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="hover:bg-muted/50 h-10 w-11 rounded-full p-0 transition-all active:scale-90 sm:w-24"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <HugeiconsIcon icon={Settings01Icon} size={18} className="text-muted-foreground" />
-                  <span className="hidden text-sm font-bold sm:inline">Settings</span>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="bg-background/95 w-56 rounded-2xl p-2 shadow-2xl backdrop-blur-xl"
-            >
-              <DropdownMenuLabel className="text-muted-foreground px-2 py-1.5 text-xs font-bold tracking-wider uppercase">
-                Preferences
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator className="my-2" />
-
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="rounded-xl">
-                  <span className="flex-1 text-sm font-medium">Network</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent className="bg-background/95 min-w-[140px] rounded-2xl p-2 shadow-2xl backdrop-blur-xl">
-                    <NetworkSwitch />
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub>
-
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="rounded-xl">
-                  <span className="flex-1 text-sm font-medium">Language</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent className="bg-background/95 min-w-[140px] rounded-2xl p-2 shadow-2xl backdrop-blur-xl">
-                    <LanguageSelect />
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub>
-
-              <div className="flex items-center justify-between px-2 py-1.5">
-                <span className="text-sm font-medium">Theme</span>
-                <ThemeSwitch />
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SettingsMenu />
         </div>
       </header>
 
-      <main className="flex flex-1 flex-col items-center px-6 pt-8 pb-32 sm:pt-28 sm:pb-8">
-        <div className="flex w-full max-w-4xl flex-col items-center">{children}</div>
+      <main className="flex flex-1 flex-col items-center px-6 pt-8 pb-12 sm:pt-28">
+        <div className="flex w-full max-w-4xl flex-col items-center">
+          {children}
+          <Footer />
+        </div>
       </main>
 
-      <Footer />
       <SigningDialog />
-      <NetworkSwitchDialog />
       <BlockNumberIndicator />
     </div>
   )

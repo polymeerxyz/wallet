@@ -23,10 +23,14 @@ import { useCallback, useMemo, useState } from "react"
 
 import type { SyncData } from "@/lib/crypto"
 import { encryptJson } from "@/lib/crypto"
+import { useConfigStore } from "@/stores/config.store"
 import { useWalletStore } from "@/stores/wallet.store"
 
 export function SyncWalletDialog() {
-  const { publicKey, chainCode, derivationStrategy, network } = useWalletStore()
+  const publicKey = useWalletStore((s) => s.publicKey)
+  const chainCode = useWalletStore((s) => s.chainCode)
+  const derivationStrategy = useWalletStore((s) => s.derivationStrategy)
+  const network = useConfigStore((s) => s.network)
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [encryptedPayload, setEncryptedPayload] = useState<string | null>(null)

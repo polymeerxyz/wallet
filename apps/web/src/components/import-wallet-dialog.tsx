@@ -16,6 +16,7 @@ import { useCallback, useEffect, useState } from "react"
 
 import type { SyncData } from "@/lib/crypto"
 import { decryptJson } from "@/lib/crypto"
+import { useConfigStore } from "@/stores/config.store"
 import { useWalletStore } from "@/stores/wallet.store"
 
 interface ImportWalletDialogProps {
@@ -65,7 +66,7 @@ export function ImportWalletDialog({ children, open, onOpenChange, initialCode }
       })
 
       // Update network if it's different
-      useWalletStore.getState().setNetwork(data.network)
+      useConfigStore.getState().setNetwork(data.network)
 
       toast.success("Wallet synchronized successfully!")
       onOpenChange?.(false)

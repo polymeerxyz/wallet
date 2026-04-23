@@ -1,17 +1,18 @@
 import type { ScriptLike } from "@ckb-ccc/core"
-import { fixedPointFrom } from "@ckb-ccc/core"
+import { fixedPointFrom, Script } from "@ckb-ccc/core"
 import { useQueries, useQuery } from "@tanstack/react-query"
 
-import { useWalletStore } from "@/stores/wallet.store"
+import { useConfigStore } from "@/stores/config.store"
 
 import { useCkbWorker } from "./use-ckb-worker"
 
 export function useBalance(scripts: ScriptLike[]) {
-  const network = useWalletStore((s) => s.network)
+  const network = useConfigStore((s) => s.network)
+  const clientMode = useConfigStore((s) => s.clientMode)
   const worker = useCkbWorker()
 
   return useQuery({
-    queryKey: ["ckb-balance", network, scripts.map((s) => s.args).join("-")],
+    queryKey: ["ckb-balance", network, clientMode, scripts.map((s) => Script.from(s).hash()).join("-")],
     queryFn: async () => {
       if (scripts.length === 0) return fixedPointFrom(0)
 
@@ -23,12 +24,13 @@ export function useBalance(scripts: ScriptLike[]) {
 }
 
 export function useBalances(scriptsWithPaths: { script: ScriptLike; path: string }[]) {
-  const network = useWalletStore((s) => s.network)
+  const network = useConfigStore((s) => s.network)
+  const clientMode = useConfigStore((s) => s.clientMode)
   const worker = useCkbWorker()
 
   return useQueries({
     queries: scriptsWithPaths.map(({ script, path }) => ({
-      queryKey: ["ckb-balance", network, script.args, path],
+      queryKey: ["ckb-balance", network, clientMode, Script.from(script).hash(), path],
       queryFn: async () => {
         const balanceStr = await worker.getBalance([script])
         return fixedPointFrom(BigInt(balanceStr))

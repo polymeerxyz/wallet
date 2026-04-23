@@ -4,36 +4,36 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useCkbWorker } from "@/hooks/use-ckb-worker"
 import { useConfigStore } from "@/stores/config.store"
 
-const networks: { value: "mainnet" | "testnet"; label: string; description: string }[] = [
-  { value: "mainnet", label: "Mainnet", description: "Production CKB" },
-  { value: "testnet", label: "Testnet", description: "Development" },
+const modes: { value: "light" | "full"; label: string; description: string }[] = [
+  { value: "light", label: "Light Node", description: "WASM" },
+  { value: "full", label: "Full Node", description: "Public RPC" },
 ]
 
-export function NetworkSwitch() {
-  const network = useConfigStore((s) => s.network)
-  const setNetwork = useConfigStore((s) => s.setNetwork)
+export function NodeModeSwitch() {
+  const clientMode = useConfigStore((s) => s.clientMode)
+  const setClientMode = useConfigStore((s) => s.setClientMode)
   const worker = useCkbWorker()
   const queryClient = useQueryClient()
   const isMobile = useIsMobile()
 
-  const handleSelect = async (value: "mainnet" | "testnet") => {
-    if (value === network) return
-    setNetwork(value)
-    await worker.updateConfig({ network: value })
+  const handleSelect = async (mode: "light" | "full") => {
+    if (mode === clientMode) return
+    setClientMode(mode)
+    await worker.updateConfig({ clientMode: mode })
     await queryClient.invalidateQueries()
   }
 
   if (isMobile) {
     return (
       <div className="flex flex-wrap gap-2">
-        {networks.map(({ value, label }) => (
+        {modes.map(({ value, label }) => (
           <Button
             key={value}
-            variant={network === value ? "default" : "outline"}
+            variant={clientMode === value ? "default" : "outline"}
             size="sm"
             className={cn(
               "h-8 rounded-xl px-3 text-xs font-bold transition-all",
-              network === value ? "shadow-primary/20 shadow-md" : "bg-muted/30"
+              clientMode === value ? "shadow-primary/20 shadow-md" : "bg-muted/30"
             )}
             onClick={() => handleSelect(value)}
           >
@@ -46,7 +46,7 @@ export function NetworkSwitch() {
 
   return (
     <>
-      {networks.map(({ value, label, description }) => (
+      {modes.map(({ value, label, description }) => (
         <DropdownMenuItem
           key={value}
           className="flex flex-col items-start rounded-xl px-3 py-2"
@@ -54,7 +54,7 @@ export function NetworkSwitch() {
         >
           <div className="flex w-full items-center justify-between">
             <span className="text-sm font-medium">{label}</span>
-            {network === value && (
+            {clientMode === value && (
               <span className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[10px] font-bold">Active</span>
             )}
           </div>

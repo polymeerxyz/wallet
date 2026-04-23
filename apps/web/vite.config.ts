@@ -59,14 +59,7 @@ export default defineConfig(({ mode }) => {
       }),
       VitePWA({
         registerType: "autoUpdate",
-        includeAssets: [
-          "favicon.ico",
-          "logo.svg",
-          "apple-touch-icon-*.png",
-          "pwa-*.png",
-          "sitemap.xml",
-          "robots.txt",
-        ],
+        includeAssets: ["favicon.ico", "logo.svg", "apple-touch-icon-*.png", "pwa-*.png", "sitemap.xml", "robots.txt"],
         manifest: {
           short_name: "Polymeer",
           name: "Polymeer Wallet",
@@ -127,6 +120,7 @@ export default defineConfig(({ mode }) => {
           background_color: "#ffffff",
         },
         workbox: {
+          maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
           navigateFallbackDenylist: [/^\/sitemap\.xml$/, /^\/robots\.txt$/],
         },
         devOptions: {
@@ -142,6 +136,18 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 1421,
       strictPort: true,
+      headers: {
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+      },
+    },
+    preview: {
+      port: 1421,
+      strictPort: true,
+      headers: {
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp",
+      },
     },
   }
 })

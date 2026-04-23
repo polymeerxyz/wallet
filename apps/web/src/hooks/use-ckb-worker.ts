@@ -1,7 +1,6 @@
 import type { CellLike, ScriptLike, TransactionLike } from "@ckb-ccc/core"
-import { useEffect } from "react"
 
-import { useWalletStore } from "../stores/wallet.store"
+import { useConfigStore } from "../stores/config.store"
 import type { ScriptInfoLike, WorkerMethod, WorkerRequest, WorkerTypeMap } from "../workers/ckb/types"
 import CkbWorker from "../workers/ckb?worker"
 
@@ -19,15 +18,23 @@ function getWorker() {
   if (typeof window === "undefined") return null
   if (!workerInstance) {
     workerInstance = new CkbWorker()
-    console.debug("Worker instance created")
+    console.debug("[Worker Hook] Worker instance created")
     workerInstance.onmessage = (e) => {
       const { id, result, error } = e.data
       const handlers = pendingRequests.get(id)
       if (handlers) {
-        if (error) handlers.reject(new Error(error))
-        else handlers.resolve(result)
+        if (error) {
+          console.debug(`[Worker Hook] Response Error for ID ${id}:`, error)
+          handlers.reject(new Error(error))
+        } else {
+          console.debug(`[Worker Hook] Response Success for ID ${id}`)
+          handlers.resolve(result)
+        }
         pendingRequests.delete(id)
       }
+    }
+    workerInstance.onerror = (err) => {
+      console.error("[Worker Hook] Worker catastrophic error:", err)
     }
   }
   return workerInstance
@@ -43,20 +50,31 @@ async function postMessageAsync<M extends WorkerMethod>(
   return new Promise((resolve, reject) => {
     const id = ++messageIdCounter
     pendingRequests.set(id, { resolve, reject })
+    console.debug(`[Worker Hook] Posting method ${method} (ID: ${id})`)
     worker.postMessage({ id, method, payload } as WorkerRequest)
   })
 }
 
 export function useCkbWorker() {
-  const network = useWalletStore((s) => s.network)
+  const network = useConfigStore((s) => s.network)
+  const clientMode = useConfigStore((s) => s.clientMode)
+  const setInitialized = useConfigStore((s) => s.setInitialized)
 
-  useEffect(() => {
-    postMessageAsync("SET_NETWORK", { network }).catch((err) => {
-      console.error("Failed to sync network with worker:", err)
-    })
-  }, [network])
+  const init = async () => {
+    console.debug("[Worker Hook] Manually triggering INIT for", network)
+
+    try {
+      await postMessageAsync("UPDATE_CONFIG", { network, clientMode })
+      setInitialized(true)
+      console.debug("[Worker Hook] INIT success")
+    } catch (err) {
+      console.error("[Worker Hook] Failed to initialize worker:", err)
+      throw err
+    }
+  }
 
   return {
+    init,
     getSingleAddress: (publicKey: string, chainCode: string, isAccountBased: boolean) =>
       postMessageAsync("GET_ADDRESS_SINGLE", {
         publicKey,
@@ -101,6 +119,14 @@ export function useCkbWorker() {
 
     getTipHeader: () => postMessageAsync("GET_TIP_HEADER", {}),
 
+    getSyncProgress: () => postMessageAsync("GET_SYNC_PROGRESS", {}),
+
     sendTransaction: (tx: TransactionLike) => postMessageAsync("SEND_TRANSACTION", { tx }),
+
+    updateConfig: (config: { network?: "mainnet" | "testnet"; clientMode?: "light" | "full" }) =>
+      postMessageAsync("UPDATE_CONFIG", {
+        network: config.network ?? network,
+        clientMode: config.clientMode ?? clientMode,
+      }),
   }
 }

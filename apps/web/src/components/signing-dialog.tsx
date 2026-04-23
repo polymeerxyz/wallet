@@ -1,16 +1,7 @@
 import { type Hex, hexFrom, Transaction, WitnessArgs } from "@ckb-ccc/core"
 import { AlertCircleIcon, CheckmarkCircle02Icon, PencilEdit01Icon, Settings03Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  Spinner,
-  toast,
-} from "@polymeer/ui"
+import { Button, Dialog, DialogContent, DialogDescription, DialogTitle, Spinner, toast } from "@polymeer/ui"
 import { useNavigate } from "@tanstack/react-router"
 import { useCallback, useEffect, useState } from "react"
 
@@ -18,6 +9,7 @@ import { useAddress } from "@/hooks/use-address"
 import { useCkbWorker } from "@/hooks/use-ckb-worker"
 import { useLedgerDevice } from "@/hooks/use-ledger-device"
 import { formatAmount, getExplorerLink } from "@/lib/utils"
+import { useConfigStore } from "@/stores/config.store"
 import { useSigningStore } from "@/stores/signing.store"
 import { useWalletStore } from "@/stores/wallet.store"
 import type { BuildResult } from "@/workers/ckb/types"
@@ -29,7 +21,7 @@ type SigningStatus = "building" | "review" | "signing" | "broadcasting" | "succe
 export function SigningDialog() {
   const navigate = useNavigate()
   const { isOpen, config, close } = useSigningStore()
-  const network = useWalletStore((s) => s.network)
+  const network = useConfigStore((s) => s.network)
   const worker = useCkbWorker()
   const { device, connect } = useLedgerDevice()
   const { scriptsWithPaths } = useAddress()

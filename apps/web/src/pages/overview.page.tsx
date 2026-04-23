@@ -1,5 +1,12 @@
 import { Address } from "@ckb-ccc/core"
-import { ArrowDown01Icon, ArrowLeftRightIcon, Copy01Icon, SafeIcon, Wallet02Icon } from "@hugeicons/core-free-icons"
+import {
+  ArrowDown01Icon,
+  ArrowLeftRightIcon,
+  Copy01Icon,
+  Link01Icon,
+  SafeIcon,
+  Wallet02Icon,
+} from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import {
   Button,
@@ -15,6 +22,8 @@ import { useEffect } from "react"
 
 import { useAddress } from "@/hooks/use-address"
 import { useBalance, useBalances } from "@/hooks/use-balance"
+import { getExplorerLink } from "@/lib/utils"
+import { useConfigStore } from "@/stores/config.store"
 import { useWalletStore, WalletDerivationStrategy } from "@/stores/wallet.store"
 
 import { BalanceDisplay } from "../components/balance-display"
@@ -33,7 +42,7 @@ export function OverviewPage() {
   const isReadOnly = useWalletStore((state) => state.isReadOnly)
   const derivationStrategy = useWalletStore((state) => state.derivationStrategy)
   const setDerivationStrategy = useWalletStore((state) => state.setDerivationStrategy)
-  const network = useWalletStore((state) => state.network)
+  const network = useConfigStore((state) => state.network)
   const navigate = useNavigate()
 
   const { data: totalBalance, isLoading: isTotalBalanceLoading } = useBalance(scripts)
@@ -166,7 +175,7 @@ export function OverviewPage() {
           </DropdownMenu>
         </div>
 
-        <div className="border-border/40 bg-muted/5 min-h-[100px] overflow-hidden rounded-2xl border">
+        <div className="border-border/40 bg-muted/5 overflow-hidden rounded-2xl border">
           {derivationStrategy === WalletDerivationStrategy.UTXO_BASED && scriptsWithPaths.length > 0 ? (
             <div className="divide-border/30 divide-y">
               {scriptsWithPaths.map((item, index) => {
@@ -237,9 +246,20 @@ export function OverviewPage() {
         <div className="border-border/40 bg-muted/5 flex flex-col gap-3 rounded-2xl border p-4">
           <div className="bg-background/50 border-border/30 flex items-center justify-between rounded-xl border px-3 py-2">
             <div className="flex min-w-0 flex-1 items-center gap-2">
-              <code className="text-muted-foreground/80 truncate text-[10px] leading-none font-medium">
-                {address || ""}
-              </code>
+              <button
+                className="hover:text-foreground group flex min-w-0 cursor-pointer items-center gap-1 transition-colors"
+                onClick={() => copyAddress(address || "")}
+                title="Copy address"
+              >
+                <code className="text-muted-foreground/80 group-hover:text-primary truncate text-[10px] leading-none font-medium transition-colors">
+                  {address || ""}
+                </code>
+                <HugeiconsIcon
+                  icon={Copy01Icon}
+                  size={10}
+                  className="text-muted-foreground/40 group-hover:text-primary transition-colors"
+                />
+              </button>
               {isReadOnly && (
                 <span className="bg-destructive/10 text-destructive shrink-0 rounded px-1 py-0.5 text-[8px] font-bold uppercase">
                   Read-Only
@@ -248,14 +268,15 @@ export function OverviewPage() {
             </div>
             <div className="flex items-center gap-1">
               <SyncWalletDialog />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 rounded-md p-0"
-                onClick={() => copyAddress(address || "")}
+              <a
+                href={getExplorerLink(address || "", network, "address")}
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground/60 hover:bg-muted hover:text-foreground flex h-6 w-6 items-center justify-center rounded-md transition-all"
+                title="View on Explorer"
               >
-                <HugeiconsIcon icon={Copy01Icon} size={12} className="opacity-70" />
-              </Button>
+                <HugeiconsIcon icon={Link01Icon} size={12} />
+              </a>
             </div>
           </div>
           <Button

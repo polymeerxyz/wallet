@@ -1,8 +1,11 @@
-import { ArrowDown01Icon, Copy01Icon } from "@hugeicons/core-free-icons"
+import { ArrowDown01Icon, Copy01Icon, Link01Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Button, Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@polymeer/ui"
 import { QRCodeSVG } from "qrcode.react"
 import type { ReactNode } from "react"
+
+import { getExplorerLink } from "@/lib/utils"
+import { useConfigStore } from "@/stores/config.store"
 
 interface ReceiveDialogProps {
   address: string | undefined
@@ -10,11 +13,7 @@ interface ReceiveDialogProps {
 }
 
 export function ReceiveDialog({ address, children }: ReceiveDialogProps) {
-  const truncateAddress = (addr: string) => {
-    if (addr.length <= 27) return addr
-    return `${addr.slice(0, 12)}...${addr.slice(-12)}`
-  }
-
+  const network = useConfigStore((s) => s.network)
   const copyAddress = () => {
     if (address) {
       navigator.clipboard.writeText(address)
@@ -61,10 +60,26 @@ export function ReceiveDialog({ address, children }: ReceiveDialogProps) {
               <p className="text-foreground mt-1 text-xs leading-relaxed font-normal break-all opacity-90">{address}</p>
             </div>
 
-            <Button className="h-12 w-full rounded-2xl text-sm font-bold active:scale-[0.98]" onClick={copyAddress}>
-              <HugeiconsIcon icon={Copy01Icon} size={16} className="mr-2" />
-              Copy Address
-            </Button>
+            <div className="flex gap-2">
+              <Button className="h-12 flex-1 rounded-2xl text-sm font-bold active:scale-[0.98]" onClick={copyAddress}>
+                <HugeiconsIcon icon={Copy01Icon} size={16} className="mr-2" />
+                Copy Address
+              </Button>
+              <Button
+                variant="outline"
+                className="border-border/30 h-12 w-12 rounded-2xl p-0 active:scale-[0.98]"
+                asChild
+              >
+                <a
+                  href={getExplorerLink(address || "", network, "address")}
+                  target="_blank"
+                  rel="noreferrer"
+                  title="View on Explorer"
+                >
+                  <HugeiconsIcon icon={Link01Icon} size={18} />
+                </a>
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

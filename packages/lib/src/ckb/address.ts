@@ -50,7 +50,6 @@ export async function scanUTXOAddresses(client: Client, publicKey: string, chain
     const rxAddr = await getAddressFromPubKey(client, rxPublicKey)
     const chAddr = await getAddressFromPubKey(client, chPublicKey)
 
-    // Check history (minimal check: just rxAddr for simplicity in scan)
     const { transactions: rxTxs } = await client.findTransactionsPaged(
       { script: rxAddr.script, scriptType: "lock", scriptSearchMode: "exact", groupByTransaction: true },
       "desc",

@@ -47,3 +47,6 @@ onlyBuiltDependencies:
   - usb
 
 preferFrozenLockfile: true
+
+overrides:
+  "@ckb-ccc/core": "1.12.5"

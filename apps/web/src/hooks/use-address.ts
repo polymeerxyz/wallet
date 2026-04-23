@@ -1,15 +1,21 @@
 import { useQuery } from "@tanstack/react-query"
 
+import { useConfigStore } from "@/stores/config.store"
 import { useWalletStore, WalletDerivationStrategy } from "@/stores/wallet.store"
 
 import { useCkbWorker } from "./use-ckb-worker"
 
 export function useAddress() {
-  const { publicKey, chainCode, derivationStrategy, network } = useWalletStore()
+  const publicKey = useWalletStore((s) => s.publicKey)
+  const chainCode = useWalletStore((s) => s.chainCode)
+  const derivationStrategy = useWalletStore((s) => s.derivationStrategy)
+  const network = useConfigStore((s) => s.network)
+  const clientMode = useConfigStore((s) => s.clientMode)
+  const initialized = useConfigStore((s) => s.initialized)
   const worker = useCkbWorker()
 
   const query = useQuery({
-    queryKey: ["ckb-address", publicKey, chainCode, derivationStrategy, network],
+    queryKey: ["ckb-address", network, clientMode, publicKey, chainCode, derivationStrategy],
     queryFn: async () => {
       if (!publicKey || !chainCode) {
         return { address: null, scripts: [] }
@@ -23,7 +29,7 @@ export function useAddress() {
         return await worker.getSingleAddress(publicKey, chainCode, isAccountBased)
       }
     },
-    enabled: !!publicKey && !!chainCode,
+    enabled: initialized && !!publicKey && !!chainCode,
   })
 
   return {

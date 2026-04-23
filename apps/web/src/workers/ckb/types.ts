@@ -1,7 +1,7 @@
 import type { CellLike, ClientBlockHeaderLike, EpochLike, ScriptLike, TransactionLike } from "@ckb-ccc/core"
 
 export type WorkerMethod =
-  | "SET_NETWORK"
+  | "UPDATE_CONFIG"
   | "GET_ADDRESS_SINGLE"
   | "SCAN_UTXO"
   | "GET_BALANCE"
@@ -13,6 +13,7 @@ export type WorkerMethod =
   | "BUILD_DAO_ACTION"
   | "GET_CELL"
   | "GET_TIP_HEADER"
+  | "GET_SYNC_PROGRESS"
   | "SEND_TRANSACTION"
 
 export interface ScriptInfoLike {
@@ -52,8 +53,9 @@ export interface BuildResult {
   witnesses: string[]
 }
 
-export interface SetNetworkPayload {
+export interface ConfigPayload {
   network: "mainnet" | "testnet"
+  clientMode: "light" | "full"
 }
 
 export interface GetAddressSinglePayload {
@@ -117,9 +119,8 @@ export interface SendTransactionPayload {
   tx: TransactionLike
 }
 
-// Unified Type Map
 export interface WorkerTypeMap {
-  SET_NETWORK: { payload: SetNetworkPayload; result: string }
+  UPDATE_CONFIG: { payload: ConfigPayload; result: Record<string, never> }
   GET_ADDRESS_SINGLE: { payload: GetAddressSinglePayload; result: AddressResult }
   SCAN_UTXO: { payload: ScanUtxoPayload; result: ScanResult }
   GET_BALANCE: { payload: GetBalancePayload; result: string }
@@ -131,6 +132,7 @@ export interface WorkerTypeMap {
   BUILD_DAO_ACTION: { payload: DaoActionPayload; result: BuildResult }
   GET_CELL: { payload: GetCellPayload; result: CellLike | null }
   GET_TIP_HEADER: { payload: Record<string, never>; result: ClientBlockHeaderLike }
+  GET_SYNC_PROGRESS: { payload: Record<string, never>; result: number }
   SEND_TRANSACTION: { payload: SendTransactionPayload; result: string }
 }
 

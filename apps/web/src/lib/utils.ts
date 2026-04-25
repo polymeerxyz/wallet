@@ -9,7 +9,6 @@ export function formatAmount(amount: NumLike): string {
 }
 
 export function getExplorerLink(id: string, network: string, type: "transaction" | "address" = "transaction") {
-  const baseUrl = network === "mainnet" ? "https://explorer.nervos.org" : "https://pudge.explorer.nervos.org"
+  const baseUrl = network === "mainnet" ? "https://explorer.nervos.org" : "https://testnet.explorer.nervos.org"
   return `${baseUrl}/${type}/${id}`
 }
-

@@ -66,11 +66,14 @@ export async function processTransactionSummary(
     await Promise.all(
       selfInputs.map(async (cellInfo: CellInfo) => {
         const input = txResponse.transaction.inputs[Number(cellInfo.cellIndex)]
-        const previousCell = await client.getCell(input.previousOutput)
-        if (previousCell) {
-          baseAmount += previousCell.cellOutput.capacity
-          if (daoScriptInfo && previousCell.cellOutput.type?.codeHash === daoScriptInfo.codeHash) {
-            hasDaoInput = true
+        const prevTx = await client.getTransaction(input.previousOutput.txHash)
+        if (prevTx) {
+          const previousOutput = prevTx.transaction.outputs[Number(input.previousOutput.index)]
+          if (previousOutput) {
+            baseAmount += previousOutput.capacity
+            if (daoScriptInfo && previousOutput.type?.codeHash === daoScriptInfo.codeHash) {
+              hasDaoInput = true
+            }
           }
         }
       })

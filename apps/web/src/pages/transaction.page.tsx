@@ -22,12 +22,12 @@ import { useEffect } from "react"
 import { useAddress } from "@/hooks/use-address"
 import { TransactionType, useTransactions } from "@/hooks/use-transactions"
 import { formatAmount, getExplorerLink } from "@/lib/utils"
-import { useWalletStore } from "@/stores/wallet.store"
+import { useConfigStore } from "@/stores/config.store"
 
 export function TransactionPage() {
   const queryClient = useQueryClient()
   const { scripts, isLoading: isLoadingAddress } = useAddress()
-  const network = useWalletStore((s) => s.network)
+  const network = useConfigStore((s) => s.network)
 
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["ckb-transactions"] })

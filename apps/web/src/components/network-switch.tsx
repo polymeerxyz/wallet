@@ -31,10 +31,7 @@ export function NetworkSwitch() {
             key={value}
             variant={network === value ? "default" : "outline"}
             size="sm"
-            className={cn(
-              "h-8 rounded-xl px-3 text-xs font-bold transition-all",
-              network === value ? "shadow-primary/20 shadow-md" : "bg-muted/30"
-            )}
+            className={cn("h-8 rounded-xl px-3 text-xs font-bold transition-all", network !== value && "bg-muted/30")}
             onClick={() => handleSelect(value)}
           >
             {label}

@@ -13,6 +13,7 @@ import {
   scanUTXOAddresses,
 } from "@polymeer/lib"
 
+import type { ClientLight } from "./client-light"
 import type { DaoCellInfo, WorkerMethod, WorkerRequest, WorkerResponse, WorkerTypeMap } from "./types"
 import { toSerializable } from "./utils"
 
@@ -158,8 +159,7 @@ async function handleMessage(request: WorkerRequest): Promise<WorkerTypeMap[Work
 
     case "GET_SYNC_PROGRESS": {
       if (currentClientMode === "light" && "getSyncProgress" in client) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (client as any).getSyncProgress()
+        return (client as ClientLight).getSyncProgress()
       }
       return 100
     }

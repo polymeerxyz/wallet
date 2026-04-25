@@ -33,7 +33,7 @@ export function NodeModeSwitch() {
             size="sm"
             className={cn(
               "h-8 rounded-xl px-3 text-xs font-bold transition-all",
-              clientMode === value ? "shadow-primary/20 shadow-md" : "bg-muted/30"
+              clientMode !== value && "bg-muted/30"
             )}
             onClick={() => handleSelect(value)}
           >

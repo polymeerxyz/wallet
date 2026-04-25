@@ -15,7 +15,7 @@
     "@ledgerhq/hw-transport": "catalog:",
     "@ledgerhq/hw-transport-webhid": "catalog:",
     "@noble/curves": "catalog:",
-    "@scure/bip32": "2.0.1",
+    "@scure/bip32": "2.2.0",
     "bip32-path": "0.4.2",
     "ckb-light-client-js": "1.0.3",
     "dayjs": "catalog:"

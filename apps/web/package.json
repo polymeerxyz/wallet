@@ -21,7 +21,7 @@
     "@ledgerhq/hw-transport-webhid": "catalog:",
     "@polymeer/lib": "workspace:*",
     "@polymeer/ui": "workspace:*",
-    "@scure/bip32": "2.0.1",
+    "@scure/bip32": "2.2.0",
     "@tanstack/react-form": "^1",
     "@tanstack/react-query": "^5",
     "@tanstack/react-router": "^1",

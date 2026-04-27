@@ -130,6 +130,17 @@ export function OverviewPage() {
             </div>
           </div>
         </Link>
+        <Link to="/fiber" className="block col-span-2">
+          <div className="border-foreground/10 bg-foreground/5 hover:bg-foreground/10 group flex flex-col justify-between rounded-2xl border p-3.5 transition-all hover:scale-[1.01]">
+            <div className="bg-foreground/5 mb-3 flex h-10 w-10 items-center justify-center rounded-xl">
+              <HugeiconsIcon icon={Link01Icon} size={20} className="text-foreground/80" />
+            </div>
+            <div>
+              <p className="text-foreground text-[13px] font-bold">Fiber Network</p>
+              <p className="text-foreground/50 text-[9px] font-semibold uppercase">Lightning</p>
+            </div>
+          </div>
+        </Link>
       </section>
 
       {/* Asset Details / UTXO Addresses */}

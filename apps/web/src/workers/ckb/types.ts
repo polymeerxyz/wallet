@@ -1,4 +1,5 @@
 import type { CellLike, ClientBlockHeaderLike, EpochLike, ScriptLike, TransactionLike } from "@ckb-ccc/core"
+import type { CkbJsonRpcTransaction } from "@nervosnetwork/fiber-js"
 
 export type WorkerMethod =
   | "UPDATE_CONFIG"
@@ -11,10 +12,12 @@ export type WorkerMethod =
   | "GET_DAO_APY"
   | "BUILD_DAO_DEPOSIT"
   | "BUILD_DAO_ACTION"
+  | "BUILD_FIBER_FUNDING"
+  | "SEND_TRANSACTION"
   | "GET_CELL"
   | "GET_TIP_HEADER"
   | "GET_SYNC_PROGRESS"
-  | "SEND_TRANSACTION"
+  | "GET_FUNDING_LOCK_CELL_DEPS"
 
 export interface ScriptInfoLike {
   script: ScriptLike
@@ -48,9 +51,11 @@ export interface TransactionResult {
 export interface BuildResult {
   tx: TransactionLike
   signPaths: string[]
+  targetWitnessIndex?: number
   fee: string
   contexts: TransactionLike[]
   witnesses: string[]
+  originalWitnesses?: string[]
 }
 
 export interface ConfigPayload {
@@ -119,6 +124,23 @@ export interface SendTransactionPayload {
   tx: TransactionLike
 }
 
+export interface BuildFiberFundingPayload {
+  scripts: ScriptInfoLike[]
+  tx: CkbJsonRpcTransaction
+}
+
+export interface FiberCellDep {
+  dep_type: "code" | "dep_group"
+  out_point: {
+    tx_hash: `0x${string}`
+    index: `0x${string}`
+  }
+}
+
+export interface GetFundingLockCellDepsPayload {
+  script: ScriptLike
+}
+
 export interface WorkerTypeMap {
   UPDATE_CONFIG: { payload: ConfigPayload; result: Record<string, never> }
   GET_ADDRESS_SINGLE: { payload: GetAddressSinglePayload; result: AddressResult }
@@ -134,6 +156,8 @@ export interface WorkerTypeMap {
   GET_TIP_HEADER: { payload: Record<string, never>; result: ClientBlockHeaderLike }
   GET_SYNC_PROGRESS: { payload: Record<string, never>; result: number }
   SEND_TRANSACTION: { payload: SendTransactionPayload; result: string }
+  BUILD_FIBER_FUNDING: { payload: BuildFiberFundingPayload; result: BuildResult }
+  GET_FUNDING_LOCK_CELL_DEPS: { payload: GetFundingLockCellDepsPayload; result: FiberCellDep[] }
 }
 
 export type WorkerRequest = {

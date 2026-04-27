@@ -1,4 +1,5 @@
 import type { CellLike, ScriptLike, TransactionLike } from "@ckb-ccc/core"
+import type { CkbJsonRpcTransaction } from "@nervosnetwork/fiber-js"
 
 import { useConfigStore } from "../stores/config.store"
 import type { ScriptInfoLike, WorkerMethod, WorkerRequest, WorkerTypeMap } from "../workers/ckb/types"
@@ -115,13 +116,18 @@ export function useCkbWorker() {
     buildDaoAction: (scripts: ScriptInfoLike[], cell: CellLike, feeRate?: string) =>
       postMessageAsync("BUILD_DAO_ACTION", { scripts, cell, feeRate }),
 
+    buildFiberFunding: (scripts: ScriptInfoLike[], tx: CkbJsonRpcTransaction) =>
+      postMessageAsync("BUILD_FIBER_FUNDING", { scripts, tx }),
+
+    sendTransaction: (tx: TransactionLike) => postMessageAsync("SEND_TRANSACTION", { tx }),
+
     getCell: (txHash: string, index: number) => postMessageAsync("GET_CELL", { txHash, index }),
 
     getTipHeader: () => postMessageAsync("GET_TIP_HEADER", {}),
 
     getSyncProgress: () => postMessageAsync("GET_SYNC_PROGRESS", {}),
 
-    sendTransaction: (tx: TransactionLike) => postMessageAsync("SEND_TRANSACTION", { tx }),
+    getFundingLockCellDeps: (script: ScriptLike) => postMessageAsync("GET_FUNDING_LOCK_CELL_DEPS", { script }),
 
     updateConfig: (config: { network?: "mainnet" | "testnet"; clientMode?: "light" | "full" }) =>
       postMessageAsync("UPDATE_CONFIG", {

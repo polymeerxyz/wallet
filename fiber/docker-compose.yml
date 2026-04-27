@@ -1,0 +1,41 @@
+services:
+  fiber:
+    image: ubuntu:24.04
+    working_dir: /fiber
+    environment:
+      FIBER_VERSION: ${FIBER_VERSION:-v0.8.1}
+      FIBER_NETWORK: ${FIBER_NETWORK:?FIBER_NETWORK is required (testnet or mainnet)}
+    env_file:
+      - path: ${FIBER_NETWORK}.env
+        required: true
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        set -e
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update -qq
+        apt-get install -y -qq --no-install-recommends curl ca-certificates
+        TARBALL="fnn_$$FIBER_VERSION-x86_64-linux.tar.gz"
+        echo "Downloading $$TARBALL ..."
+        curl -fsSL \
+          "https://github.com/nervosnetwork/fiber/releases/download/$$FIBER_VERSION/$$TARBALL" \
+          -o /tmp/fnn.tar.gz
+        tar xzf /tmp/fnn.tar.gz -C /fiber
+        chmod +x /fiber/fnn /fiber/fnn-cli /fiber/fnn-migrate
+        exec ./fnn -c ./$$FIBER_NETWORK.yml -d .
+    volumes:
+      - ./ckb/key:/fiber/ckb/key
+      - ./${FIBER_NETWORK}/fiber.yml:/fiber/${FIBER_NETWORK}.yml:ro
+    ports:
+      - "8228:8228"
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/fiber.conf:ro
+    depends_on:
+      - fiber
+    restart: unless-stopped

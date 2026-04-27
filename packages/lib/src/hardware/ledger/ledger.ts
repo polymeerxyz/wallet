@@ -1,5 +1,18 @@
-import type { ScriptLike, TransactionLike } from "@ckb-ccc/core"
-import { Address, bytesFrom, CellInput, depTypeFrom, hashCkb, hexFrom, numFrom, Script, Since } from "@ckb-ccc/core"
+import type { TransactionLike } from "@ckb-ccc/core"
+import {
+  Address,
+  bytesFrom,
+  CellInput,
+  depTypeFrom,
+  hashCkb,
+  hexFrom,
+  KnownScript,
+  numFrom,
+  Script,
+  Since,
+  stringify,
+} from "@ckb-ccc/core"
+import { MAINNET_SCRIPTS, TESTNET_SCRIPTS } from "@ckb-ccc/core/advanced"
 import type Transport from "@ledgerhq/hw-transport"
 
 import { prepBipPath } from "../../utils"
@@ -156,11 +169,7 @@ export default class LedgerCKB {
    * const lockArg = result.lockArg;
    * const address = result.address;
    */
-  async getWalletPublicKey(
-    path: string,
-    script: Pick<ScriptLike, "codeHash" | "hashType">,
-    testnet: boolean = false
-  ): Promise<WalletPublicKey> {
+  async getWalletPublicKey(path: string, testnet: boolean = false): Promise<WalletPublicKey> {
     const bipPath = prepBipPath(path)
 
     const data = Buffer.alloc(1 + bipPath.length * 4)
@@ -182,7 +191,17 @@ export default class LedgerCKB {
     const publicKeyHex = `0x${compressedPublicKey.toString("hex")}` as const
     const lockArg = hexFrom(bytesFrom(hashCkb(publicKeyHex)).slice(0, 20))
 
-    const address = new Address(Script.from({ ...script, args: lockArg }), testnet ? "ckt" : "ckb").toString()
+    const script = testnet
+      ? TESTNET_SCRIPTS[KnownScript.Secp256k1Blake160]
+      : MAINNET_SCRIPTS[KnownScript.Secp256k1Blake160]
+    const address = new Address(
+      Script.from({
+        codeHash: script!.codeHash,
+        hashType: script!.hashType,
+        args: lockArg,
+      }),
+      testnet ? "ckt" : "ckb"
+    ).toString()
 
     return {
       publicKey: publicKeyHex,
@@ -238,29 +257,45 @@ export default class LedgerCKB {
     contexts: TransactionLike[],
     changePath: string
   ): Promise<string> {
-    return await this.signAnnotatedTransaction(
-      buildAnnotatedTransaction(signPath, tx, groupWitnesses, contexts, changePath)
+    console.debug(
+      "[Ledger] signTransaction payload:",
+      stringify({ signPath, tx, groupWitnesses, contextCount: contexts.length, contexts, changePath })
     )
+
+    const annotatedTx = buildAnnotatedTransaction(signPath, tx, groupWitnesses, contexts, changePath)
+    console.debug("[Ledger] buildAnnotatedTransaction completed")
+    return await this.signAnnotatedTransaction(annotatedTx)
   }
 
   /**
    * Sign an already constructed AnnotatedTransaction.
    */
   async signAnnotatedTransaction(tx: AnnotatedTransaction): Promise<string> {
-    const rawAnTx = Buffer.from(SerializeAnnotatedTransaction.encode(tx))
+    console.debug("[Ledger] signAnnotatedTransaction encoding...")
+    let rawAnTx: Buffer
+    try {
+      rawAnTx = Buffer.from(SerializeAnnotatedTransaction.encode(tx))
+    } catch (e) {
+      console.error("[Ledger] signAnnotatedTransaction Molecule encoding failed:", e)
+      throw e
+    }
+    console.debug(`[Ledger] signAnnotatedTransaction encoded: ${rawAnTx.byteLength} bytes`)
 
     const maxApduSize = 230
 
     const txFullChunks = Math.floor(rawAnTx.byteLength / maxApduSize)
+    const totalChunks = txFullChunks + 1
     let isContinuation = 0x00
     for (let i = 0; i < txFullChunks; i++) {
       const data = rawAnTx.subarray(i * maxApduSize, (i + 1) * maxApduSize)
+      console.debug(`[Ledger] Sending chunk ${i + 1}/${totalChunks}...`)
       await this.sendAPDU(0x03, isContinuation, 0x00, Buffer.from(data))
       isContinuation = 0x01
     }
 
     const lastOffset = txFullChunks * maxApduSize
     const lastData = rawAnTx.subarray(lastOffset, lastOffset + maxApduSize)
+    console.debug(`[Ledger] Sending chunk ${totalChunks}/${totalChunks}...`)
     const response = await this.sendAPDU(0x03, isContinuation | 0x80, 0x00, Buffer.from(lastData))
     return response.subarray(0, 65).toString("hex")
   }

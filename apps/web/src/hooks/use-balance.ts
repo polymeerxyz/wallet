@@ -9,6 +9,7 @@ import { useCkbWorker } from "./use-ckb-worker"
 export function useBalance(scripts: ScriptLike[]) {
   const network = useConfigStore((s) => s.network)
   const clientMode = useConfigStore((s) => s.clientMode)
+  const initialized = useConfigStore((s) => s.initialized)
   const worker = useCkbWorker()
 
   return useQuery({
@@ -19,13 +20,14 @@ export function useBalance(scripts: ScriptLike[]) {
       const balanceStr = await worker.getBalance(scripts)
       return fixedPointFrom(BigInt(balanceStr))
     },
-    enabled: scripts.length > 0,
+    enabled: initialized && scripts.length > 0,
   })
 }
 
 export function useBalances(scriptsWithPaths: { script: ScriptLike; path: string }[]) {
   const network = useConfigStore((s) => s.network)
   const clientMode = useConfigStore((s) => s.clientMode)
+  const initialized = useConfigStore((s) => s.initialized)
   const worker = useCkbWorker()
 
   return useQueries({
@@ -35,7 +37,7 @@ export function useBalances(scriptsWithPaths: { script: ScriptLike; path: string
         const balanceStr = await worker.getBalance([script])
         return fixedPointFrom(BigInt(balanceStr))
       },
-      enabled: !!script,
+      enabled: initialized && !!script,
     })),
   })
 }

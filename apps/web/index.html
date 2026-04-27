@@ -71,7 +71,57 @@
     <link rel="icon" href="/logo.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
 
-    <script src="/coi-serviceworker.js"></script>
+    <script>
+      // On the first visit there is no service worker yet, so COOP/COEP headers
+      // are not injected and crossOriginIsolated is false (SharedArrayBuffer
+      // unavailable). Once the Workbox SW has registered and is ready, reload
+      // once so the SW can inject the headers on the navigation response.
+      if (typeof window !== "undefined" && window.crossOriginIsolated === false) {
+        let reloads = parseInt(sessionStorage.getItem("_coiReloads") || "0")
+        if (reloads < 2 && "serviceWorker" in navigator) {
+          navigator.serviceWorker.ready.then(function (registration) {
+            // Ensure the service worker is activated before reloading
+            if (registration.active && !window.crossOriginIsolated) {
+              sessionStorage.setItem("_coiReloads", (reloads + 1).toString())
+              window.location.reload()
+            }
+          })
+        }
+      } else {
+        sessionStorage.removeItem("_coiReloads")
+      }
+
+      // GitHub Pages SPA redirect hack parsing
+      ;(function () {
+        var search = window.location.search
+        if (search && search.includes("path=")) {
+          var q = {}
+          search
+            .slice(1)
+            .split("&")
+            .forEach(function (v) {
+              var a = v.split("=")
+              q[a[0]] = a.slice(1).join("=").replace(/~and~/g, "&")
+            })
+          if (q.path !== undefined) {
+            var path = decodeURIComponent(q.path)
+            delete q.path
+            var queryString = ""
+            var keys = Object.keys(q)
+            if (keys.length > 0) {
+              queryString =
+                "?" +
+                keys
+                  .map(function (k) {
+                    return k + (q[k] ? "=" + q[k] : "")
+                  })
+                  .join("&")
+            }
+            window.history.replaceState(null, null, path + queryString + window.location.hash)
+          }
+        }
+      })()
+    </script>
   </head>
 
   <body>

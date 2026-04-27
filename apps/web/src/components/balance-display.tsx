@@ -1,4 +1,4 @@
-import { numFrom, type NumLike } from "@ckb-ccc/core"
+import { type NumLike } from "@ckb-ccc/core"
 import { cn } from "@polymeer/ui"
 
 import { formatAmount } from "@/lib/utils"

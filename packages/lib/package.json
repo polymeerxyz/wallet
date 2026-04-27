@@ -11,13 +11,14 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@ckb-ccc/core": "1.12.5",
+    "@ckb-ccc/core": "catalog:",
     "@ledgerhq/hw-transport": "catalog:",
     "@ledgerhq/hw-transport-webhid": "catalog:",
+    "@nervosnetwork/fiber-js": "catalog:",
     "@noble/curves": "catalog:",
-    "@scure/bip32": "2.0.1",
-    "bip32-path": "0.4.2",
-    "ckb-light-client-js": "1.0.3",
+    "@scure/bip32": "catalog:",
+    "bip32-path": "catalog:",
+    "ckb-light-client-js": "catalog:",
     "dayjs": "catalog:"
   },
   "devDependencies": {

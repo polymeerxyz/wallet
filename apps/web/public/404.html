@@ -70,6 +70,45 @@
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/logo.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+
+    <script>
+      // On the first visit there is no service worker yet, so COOP/COEP headers
+      // are not injected and crossOriginIsolated is false (SharedArrayBuffer
+      // unavailable). Once the Workbox SW has registered and is ready, reload
+      // once so the SW can inject the headers on the navigation response.
+      if (typeof window !== "undefined" && window.crossOriginIsolated === false) {
+        let reloads = parseInt(sessionStorage.getItem("_coiReloads") || "0")
+        if (reloads < 2 && "serviceWorker" in navigator) {
+          navigator.serviceWorker.ready.then(function (registration) {
+            // Ensure the service worker is activated before reloading
+            if (registration.active && !window.crossOriginIsolated) {
+              sessionStorage.setItem("_coiReloads", (reloads + 1).toString())
+              window.location.reload()
+            }
+          })
+        }
+      } else {
+        sessionStorage.removeItem("_coiReloads")
+      }
+
+      // GitHub Pages SPA redirect logic
+      var l = window.location
+      var path = l.pathname.substring(1) // exclude leading slash
+      if (path && !path.startsWith("src/")) {
+        l.replace(
+          l.protocol +
+            "//" +
+            l.hostname +
+            (l.port ? ":" + l.port : "") +
+            "/?path=/" +
+            encodeURIComponent(path) +
+            (l.search ? "&" + l.search.slice(1).replace(/&/g, "~and~") : "") +
+            l.hash
+        )
+      } else {
+        l.replace("/")
+      }
+    </script>
   </head>
 
   <body>

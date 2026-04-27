@@ -1,4 +1,4 @@
-import { type Hex, hexFrom, Transaction, WitnessArgs } from "@ckb-ccc/core"
+import { type Hex, hexFrom, stringify, Transaction, WitnessArgs } from "@ckb-ccc/core"
 import { AlertCircleIcon, CheckmarkCircle02Icon, PencilEdit01Icon, Settings03Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Button, Dialog, DialogContent, DialogDescription, DialogTitle, Spinner, toast } from "@polymeer/ui"
@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react"
 
 import { useAddress } from "@/hooks/use-address"
 import { useCkbWorker } from "@/hooks/use-ckb-worker"
+import { useFiberWorker } from "@/hooks/use-fiber-worker"
 import { useLedgerDevice } from "@/hooks/use-ledger-device"
 import { formatAmount, getExplorerLink } from "@/lib/utils"
 import { useConfigStore } from "@/stores/config.store"
@@ -23,6 +24,7 @@ export function SigningDialog() {
   const { isOpen, config, close } = useSigningStore()
   const network = useConfigStore((s) => s.network)
   const worker = useCkbWorker()
+  const fiberWorker = useFiberWorker()
   const { device, connect } = useLedgerDevice()
   const { scriptsWithPaths } = useAddress()
 
@@ -65,6 +67,10 @@ export function SigningDialog() {
           res = await worker.buildDaoAction(scriptsWithPaths, cell, config.payload.feeRate)
           break
         }
+        case "fiber_open_channel": {
+          res = await worker.buildFiberFunding(scriptsWithPaths, config.payload.tx)
+          break
+        }
       }
       setBuiltTx(res)
       setStatus("review")
@@ -76,7 +82,7 @@ export function SigningDialog() {
   }, [config, scriptsWithPaths, worker])
 
   const handleSign = useCallback(async () => {
-    if (!builtTx || !builtTx.signPaths[0]) {
+    if (!builtTx || !builtTx.signPaths[0] || !config) {
       setError("No transaction to sign or missing signature path")
       setStatus("error")
       return
@@ -90,38 +96,63 @@ export function SigningDialog() {
         ledger = await connect()
       }
       if (!ledger) throw new Error("Ledger not connected. Check device and app.")
+      const targetIndex = builtTx.targetWitnessIndex !== undefined ? builtTx.targetWitnessIndex : 0
+      const groupWitnesses = [
+        builtTx.witnesses[targetIndex],
+        ...builtTx.witnesses.slice(builtTx.tx.inputs?.length ?? 0),
+      ]
 
       const signatureRaw = await ledger.signTransaction(
         builtTx.signPaths[0],
         builtTx.tx,
-        builtTx.witnesses,
+        groupWitnesses,
         builtTx.contexts,
         builtTx.signPaths[0]
       )
 
       setStatus("broadcasting")
 
-      const signature = (signatureRaw.startsWith("0x") ? signatureRaw : `0x${signatureRaw}`) as Hex
       const tx = Transaction.from(builtTx.tx)
-      const witnessArgs = WitnessArgs.fromBytes(builtTx.witnesses[0])
-      witnessArgs.lock = signature
-      tx.witnesses[0] = hexFrom(witnessArgs.toBytes())
 
-      const hash = await worker.sendTransaction(tx)
-      setTxHash(hash)
+      // Find the precise index to write the signature into. Use provided targetWitnessIndex or default to 0.
+
+      const signature = (signatureRaw.startsWith("0x") ? signatureRaw : `0x${signatureRaw}`) as Hex
+      const witnessArgs = WitnessArgs.fromBytes(tx.witnesses[targetIndex] || "0x")
+      witnessArgs.lock = signature
+      tx.witnesses[targetIndex] = hexFrom(witnessArgs.toBytes())
+
+      if (config.type === "fiber_open_channel") {
+        // Restore original witnesses before final serialization so the fiber node receives the complete transaction
+        if (builtTx.originalWitnesses) {
+          const finalWitnesses = [...builtTx.originalWitnesses] as Hex[]
+          finalWitnesses[targetIndex] = tx.witnesses[targetIndex] as Hex
+          tx.witnesses = finalWitnesses
+        }
+
+        const signedTxRpc = JSON.parse(stringify(tx))
+        const res = await fiberWorker.submitSignedFundingTx({
+          channel_id: config.payload.channelId as Hex,
+          signed_funding_tx: signedTxRpc,
+        })
+        setTxHash(res.funding_tx_hash)
+        toast.success("Funding transaction submitted!")
+      } else {
+        const hash = await worker.sendTransaction(tx)
+        setTxHash(hash)
+        toast.success("Transaction broadcasted!")
+      }
       setStatus("success")
-      toast.success("Transaction broadcasted!")
     } catch (err: unknown) {
       console.error("Signing failed:", err)
       setError(err instanceof Error ? err.message : "User denied or connection lost")
       setStatus("error")
     }
-  }, [builtTx, device, worker, connect])
+  }, [builtTx, config, device, fiberWorker, worker, connect])
 
   const handleDone = useCallback(() => {
     close()
-    navigate({ to: "/" })
-  }, [close, navigate])
+    navigate({ to: config?.type === "fiber_open_channel" ? "/fiber" : "/" })
+  }, [close, config, navigate])
 
   useEffect(() => {
     if (isOpen && config) {
@@ -196,8 +227,17 @@ export function SigningDialog() {
 
                 <div className="space-y-3 pt-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-tiny font-semibold uppercase">Amount</span>
-                    <BalanceDisplay amount={builtTx.tx.outputs?.[0]?.capacity ?? BigInt(0)} size="sm" />
+                    <span className="text-muted-foreground text-tiny font-semibold uppercase">
+                      {config.type === "fiber_open_channel" ? "Funding Amount" : "Amount"}
+                    </span>
+                    <BalanceDisplay
+                      amount={
+                        config.type === "fiber_open_channel"
+                          ? BigInt(config.payload.amount)
+                          : (builtTx.tx.outputs?.[0]?.capacity ?? BigInt(0))
+                      }
+                      size="sm"
+                    />
                   </div>
 
                   <div className="border-border/10 flex items-center justify-between border-t pt-3">

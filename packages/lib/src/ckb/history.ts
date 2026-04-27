@@ -157,15 +157,18 @@ export async function getTransactions(client: Client, scripts: Script[], cursors
         },
         "desc",
         20,
-        cursors[scriptHash]
+        cursors[scriptHash] || undefined
       )
 
-      nextCursors[scriptHash] = lastCursor || ""
+      nextCursors[scriptHash] = lastCursor ?? ""
 
       transactions.forEach((tx: unknown) => {
         const t = tx as TxSummary
         if (!allTxSummaries.has(t.txHash)) {
           allTxSummaries.set(t.txHash, t)
+        } else {
+          const existing = allTxSummaries.get(t.txHash)!
+          existing.cells = [...existing.cells, ...t.cells]
         }
       })
     })

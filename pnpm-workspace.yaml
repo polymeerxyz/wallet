@@ -5,19 +5,24 @@ packages:
 autoInstallPeers: true
 
 catalog:
+  "@ckb-ccc/core": "1.12.5"
   "@eslint/js": ^10
   "@hugeicons/core-free-icons": ^4
   "@hugeicons/react": ^1
   "@ledgerhq/hw-transport": "6.35.0"
   "@ledgerhq/hw-transport-webhid": "6.35.0"
+  "@multiformats/multiaddr": "13.0.1"
+  "@nervosnetwork/fiber-js": "0.8.1"
   "@noble/curves": "2.2.0"
+  "@scure/bip32": "2.0.1"
   "@sentry/cloudflare": ^10
   "@sentry/react": ^10
-  "@sentry/tanstackstart-react": ^10
   "@types/node": ^24
   "@types/react": ^19
   "@types/react-dom": ^19
   "@vitejs/plugin-react": ^6
+  "bip32-path": "0.4.2"
+  "ckb-light-client-js": "1.0.3"
   dayjs: ^1
   eslint: ^10
   i18next: ^26
@@ -46,7 +51,7 @@ onlyBuiltDependencies:
   - secp256k1
   - usb
 
-preferFrozenLockfile: true
-
 overrides:
   "@ckb-ccc/core": "1.12.5"
+
+preferFrozenLockfile: true

@@ -17,14 +17,16 @@ import type {
   ScriptLike,
   TransactionLike,
 } from "@ckb-ccc/core"
-import { Cell, ClientJsonRpc, hexFrom, numFrom, OutPoint, RequestorJsonRpc, Script, ScriptInfo } from "@ckb-ccc/core"
+import { Cell, ClientJsonRpc, hexFrom, numFrom, OutPoint, RequestorJsonRpc, ScriptInfo } from "@ckb-ccc/core"
 import { MAINNET_SCRIPTS, TESTNET_SCRIPTS } from "@ckb-ccc/core/advanced"
-import type { FetchResponse, NetworkSetting, ScriptStatus, TxWithCell, TxWithCells } from "ckb-light-client-js"
-import { LightClient, LightClientSetScriptsCommand } from "ckb-light-client-js"
-
-import mainnetConfig from "./mainnet.toml?raw"
-import testnetConfig from "./testnet.toml?raw"
-import type { ScriptInfoLike } from "./types"
+import type {
+  FetchResponse,
+  LightClient,
+  LightClientSetScriptsCommand,
+  ScriptStatus,
+  TxWithCell,
+  TxWithCells,
+} from "ckb-light-client-js"
 
 /**
  * CCC Client backed by ckb-light-client-js (WASM).
@@ -32,7 +34,7 @@ import type { ScriptInfoLike } from "./types"
  * snake_case ↔ camelCase mismatch introduced by JsonRpcTransformers.
  * Full-node-only methods return safe no-op values.
  */
-class ClientLight extends ClientJsonRpc {
+export class ClientLight extends ClientJsonRpc {
   private clientNetwork: "mainnet" | "testnet"
   private lc: LightClient
 
@@ -228,68 +230,3 @@ class ClientLight extends ClientJsonRpc {
     return Math.min(100, Math.round((avgSynced / Number(header.number)) * 100))
   }
 }
-
-let lightClientWasm: LightClient | null = null
-let startPromise: Promise<void> | null = null
-let currentNetwork: "mainnet" | "testnet" | null = null
-
-export async function startLightClient(network: "mainnet" | "testnet"): Promise<ClientLight> {
-  if (startPromise && currentNetwork !== network) {
-    await stopLightClient()
-  }
-
-  if (!startPromise) {
-    const isMainnet = network === "mainnet"
-    const networkSetting: NetworkSetting = isMainnet
-      ? { type: "MainNet" as const, config: mainnetConfig }
-      : { type: "TestNet" as const, config: testnetConfig }
-
-    lightClientWasm = new LightClient()
-    currentNetwork = network
-
-    const secretKey = "0x0000000000000000000000000000000000000000000000000000000000000001"
-    startPromise = lightClientWasm.start(networkSetting, secretKey, "error", "ws")
-  }
-
-  const timeoutPromise = new Promise<void>((_, reject) =>
-    setTimeout(() => reject(new Error("Light Client failed to start within 30 seconds")), 30000)
-  )
-
-  await Promise.race([startPromise, timeoutPromise])
-  return new ClientLight(network, lightClientWasm!)
-}
-
-export async function stopLightClient(): Promise<void> {
-  if (lightClientWasm) {
-    await lightClientWasm.stop()
-    lightClientWasm = null
-    startPromise = null
-    currentNetwork = null
-  }
-}
-
-export async function ensureScripts(scripts: Array<ScriptLike | ScriptInfoLike>) {
-  if (!lightClientWasm) return
-
-  const existingScripts = await lightClientWasm.getScripts()
-  const existingHashes = new Set(existingScripts.map((s) => Script.from(s.script).hash()))
-
-  const newScripts = scripts
-    .map((s) => Script.from("script" in s ? s.script : s))
-    .filter((script) => !existingHashes.has(script.hash()))
-
-  if (newScripts.length === 0) return
-
-  const tip = await lightClientWasm.getTipHeader()
-  const startBlock = tip.number > numFrom(100) ? tip.number - numFrom(100) : numFrom(0)
-
-  const newStatuses = newScripts.map((script) => ({
-    script,
-    scriptType: "lock" as const,
-    blockNumber: startBlock,
-  }))
-
-  await lightClientWasm.setScripts(newStatuses, LightClientSetScriptsCommand.Partial)
-}
-
-export { ClientLight, LightClientSetScriptsCommand }

@@ -15,12 +15,8 @@ describe("Ledger CKB", () => {
       )
     )
     const ckb = new LedgerCKB(transport)
-    const script = {
-      codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
-      hashType: "type" as const,
-    }
 
-    const result = await ckb.getWalletPublicKey("m/44'/309'/0'/1/0", script)
+    const result = await ckb.getWalletPublicKey("m/44'/309'/0'/1/0")
     expect(result).toEqual({
       publicKey: "0x02d066dbe5603004dc4c83e27106b098f5e9b9b17b6bdec965810cd0921193b1c8",
       lockArg: "0xa3912c9414bfd45b830478c05385dfa4d560c859",

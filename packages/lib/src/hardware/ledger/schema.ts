@@ -156,14 +156,17 @@ export const RawTransaction = mol
     outputs_data: mol.BytesVec,
   })
   .map({
-    inMap: (val: TransactionLike) => ({
-      version: val.version ?? 0,
-      cell_deps: val.cellDeps ?? [],
-      header_deps: val.headerDeps ?? [],
-      inputs: val.inputs ?? [],
-      outputs: val.outputs ?? [],
-      outputs_data: val.outputsData ?? [],
-    }),
+    inMap: (val: TransactionLike) => {
+      if (!val) throw new Error("Transaction is null or undefined")
+      return {
+        version: val.version ?? 0,
+        cell_deps: val.cellDeps ?? [],
+        header_deps: val.headerDeps ?? [],
+        inputs: val.inputs ?? [],
+        outputs: val.outputs ?? [],
+        outputs_data: val.outputsData ?? [],
+      }
+    },
     outMap: (val) => ({
       version: val.version,
       cellDeps: val.cell_deps,
@@ -178,12 +181,14 @@ export const RawTransaction = mol
  * A codec that accepts either a Transaction object or its pre-encoded bytes.
  */
 export const RawTransactionOrBytes = mol.Codec.from<TransactionLike | Hex | Uint8Array, TransactionLike>({
-  encode: (val) =>
-    val instanceof Uint8Array ||
-    (typeof Buffer !== "undefined" && Buffer.isBuffer(val)) ||
-    (typeof val === "string" && val.startsWith("0x"))
+  encode: (val) => {
+    if (!val) throw new Error("RawTransactionOrBytes: value is null or undefined")
+    return val instanceof Uint8Array ||
+      (typeof Buffer !== "undefined" && Buffer.isBuffer(val)) ||
+      (typeof val === "string" && val.startsWith("0x"))
       ? bytesFrom(val as Hex | Uint8Array)
-      : RawTransaction.encode(val as TransactionLike),
+      : RawTransaction.encode(val as TransactionLike)
+  },
   decode: RawTransaction.decode,
 })
 
@@ -201,10 +206,15 @@ export const AnnotatedCellInput = mol
     source: RawTransactionOrBytes,
   })
   .map({
-    inMap: (val: { input: CellInputLike; source: TransactionLike | Hex | Uint8Array }) => ({
-      input: val.input,
-      source: val.source,
-    }),
+    inMap: (val: { input: CellInputLike; source: TransactionLike | Hex | Uint8Array }) => {
+      if (!val || !val.input || !val.source) {
+        throw new Error("AnnotatedCellInput: missing input or source")
+      }
+      return {
+        input: val.input,
+        source: val.source,
+      }
+    },
     outMap: (val) => ({
       input: val.input,
       source: val.source,
@@ -233,14 +243,17 @@ export const AnnotatedRawTransaction = mol
       inputs: { input: CellInputLike; source: TransactionLike | Hex | Uint8Array }[]
       outputs: CellOutputLike[]
       outputsData: Hex[]
-    }) => ({
-      version: val.version,
-      cell_deps: val.cellDeps,
-      header_deps: val.headerDeps,
-      inputs: val.inputs,
-      outputs: val.outputs,
-      outputs_data: val.outputsData,
-    }),
+    }) => {
+      if (!val) throw new Error("AnnotatedRawTransaction: value is null or undefined")
+      return {
+        version: val.version ?? 0,
+        cell_deps: val.cellDeps ?? [],
+        header_deps: val.headerDeps ?? [],
+        inputs: val.inputs ?? [],
+        outputs: val.outputs ?? [],
+        outputs_data: val.outputsData ?? [],
+      }
+    },
     outMap: (val) => ({
       version: val.version,
       cellDeps: val.cell_deps,

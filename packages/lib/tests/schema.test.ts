@@ -7,6 +7,7 @@ import type {
   TransactionLike,
 } from "@ckb-ccc/core"
 import { hexFrom, numFrom, Since } from "@ckb-ccc/core"
+// @ts-expect-error: The legacy library does not provide type definitions for this internal module
 import { SerializeAnnotatedTransaction } from "@magickbase/hw-app-ckb/lib/annotated"
 import { describe, expect, it } from "vitest"
 

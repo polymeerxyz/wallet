@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
 import { Route as AuthenticatedSendRouteImport } from './routes/_authenticated/send'
+import { Route as AuthenticatedFiberRouteImport } from './routes/_authenticated/fiber'
 import { Route as AuthenticatedDaoRouteImport } from './routes/_authenticated/dao'
 
 const ConnectRoute = ConnectRouteImport.update({
@@ -47,6 +48,13 @@ const AuthenticatedSendRoute = AuthenticatedSendRouteImport.update({
 } as any).lazy(() =>
   import('./routes/_authenticated/send.lazy').then((d) => d.Route),
 )
+const AuthenticatedFiberRoute = AuthenticatedFiberRouteImport.update({
+  id: '/fiber',
+  path: '/fiber',
+  getParentRoute: () => AuthenticatedRoute,
+} as any).lazy(() =>
+  import('./routes/_authenticated/fiber.lazy').then((d) => d.Route),
+)
 const AuthenticatedDaoRoute = AuthenticatedDaoRouteImport.update({
   id: '/dao',
   path: '/dao',
@@ -59,12 +67,14 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/connect': typeof ConnectRoute
   '/dao': typeof AuthenticatedDaoRoute
+  '/fiber': typeof AuthenticatedFiberRoute
   '/send': typeof AuthenticatedSendRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
 }
 export interface FileRoutesByTo {
   '/connect': typeof ConnectRoute
   '/dao': typeof AuthenticatedDaoRoute
+  '/fiber': typeof AuthenticatedFiberRoute
   '/send': typeof AuthenticatedSendRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/': typeof AuthenticatedIndexRoute
@@ -74,20 +84,22 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/connect': typeof ConnectRoute
   '/_authenticated/dao': typeof AuthenticatedDaoRoute
+  '/_authenticated/fiber': typeof AuthenticatedFiberRoute
   '/_authenticated/send': typeof AuthenticatedSendRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/connect' | '/dao' | '/send' | '/transactions'
+  fullPaths: '/' | '/connect' | '/dao' | '/fiber' | '/send' | '/transactions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/connect' | '/dao' | '/send' | '/transactions' | '/'
+  to: '/connect' | '/dao' | '/fiber' | '/send' | '/transactions' | '/'
   id:
     | '__root__'
     | '/_authenticated'
     | '/connect'
     | '/_authenticated/dao'
+    | '/_authenticated/fiber'
     | '/_authenticated/send'
     | '/_authenticated/transactions'
     | '/_authenticated/'
@@ -135,6 +147,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSendRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/fiber': {
+      id: '/_authenticated/fiber'
+      path: '/fiber'
+      fullPath: '/fiber'
+      preLoaderRoute: typeof AuthenticatedFiberRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dao': {
       id: '/_authenticated/dao'
       path: '/dao'
@@ -147,6 +166,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDaoRoute: typeof AuthenticatedDaoRoute
+  AuthenticatedFiberRoute: typeof AuthenticatedFiberRoute
   AuthenticatedSendRoute: typeof AuthenticatedSendRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
@@ -154,6 +174,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDaoRoute: AuthenticatedDaoRoute,
+  AuthenticatedFiberRoute: AuthenticatedFiberRoute,
   AuthenticatedSendRoute: AuthenticatedSendRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,

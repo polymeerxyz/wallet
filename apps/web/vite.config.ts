@@ -58,6 +58,9 @@ export default defineConfig(({ mode }) => {
         dynamicRoutes: ["/", "/connect", "/dao", "/transactions", "/send"],
       }),
       VitePWA({
+        strategies: "injectManifest",
+        srcDir: "src",
+        filename: "sw.ts",
         registerType: "autoUpdate",
         includeAssets: ["favicon.ico", "logo.svg", "apple-touch-icon-*.png", "pwa-*.png", "sitemap.xml", "robots.txt"],
         manifest: {
@@ -119,12 +122,11 @@ export default defineConfig(({ mode }) => {
           theme_color: "#E07B30",
           background_color: "#ffffff",
         },
-        workbox: {
+        injectManifest: {
           maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
-          navigateFallbackDenylist: [/^\/sitemap\.xml$/, /^\/robots\.txt$/],
         },
         devOptions: {
-          enabled: true,
+          enabled: false,
         },
       }),
     ],
@@ -138,7 +140,8 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       headers: {
         "Cross-Origin-Opener-Policy": "same-origin",
-        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Cross-Origin-Embedder-Policy": "credentialless",
+        "Cross-Origin-Resource-Policy": "cross-origin",
       },
     },
     preview: {
@@ -146,7 +149,8 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       headers: {
         "Cross-Origin-Opener-Policy": "same-origin",
-        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Cross-Origin-Embedder-Policy": "credentialless",
+        "Cross-Origin-Resource-Policy": "cross-origin",
       },
     },
   }

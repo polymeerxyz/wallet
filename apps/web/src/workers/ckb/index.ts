@@ -1,8 +1,10 @@
-import type { Client } from "@ckb-ccc/core"
-import { Cell, ClientPublicMainnet, ClientPublicTestnet, numFrom, Script } from "@ckb-ccc/core"
+import type { Client, Hex } from "@ckb-ccc/core"
+import { Cell, ClientPublicMainnet, ClientPublicTestnet, KnownScript, numFrom, Script } from "@ckb-ccc/core"
+import type { ClientLight } from "@polymeer/lib"
 import {
   buildDaoAction,
   buildDaoDeposit,
+  buildFiberFunding,
   buildSendCkbTransaction,
   getBalanceForScripts,
   getDaoAPY,
@@ -13,7 +15,6 @@ import {
   scanUTXOAddresses,
 } from "@polymeer/lib"
 
-import type { ClientLight } from "./client-light"
 import type { DaoCellInfo, WorkerMethod, WorkerRequest, WorkerResponse, WorkerTypeMap } from "./types"
 import { toSerializable } from "./utils"
 
@@ -33,8 +34,12 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
 }
 
 async function getActiveClient(network: "mainnet" | "testnet"): Promise<Client> {
+  if (!currentNetwork) {
+    throw new Error("Worker not initialized. Call UPDATE_CONFIG first.")
+  }
+
   if (currentClientMode === "full") return network === "mainnet" ? new ClientPublicMainnet() : new ClientPublicTestnet()
-  const { startLightClient } = await import("./client-light")
+  const { startLightClient } = await import("./client")
   return startLightClient(network)
 }
 
@@ -52,23 +57,20 @@ async function handleMessage(request: WorkerRequest): Promise<WorkerTypeMap[Work
 
     if (currentClientMode === "full") {
       if (prevMode === "light" || prevNetwork !== currentNetwork) {
-        const { stopLightClient } = await import("./client-light")
+        const { stopLightClient } = await import("./client")
         await stopLightClient()
       }
     } else {
-      const { startLightClient } = await import("./client-light")
+      const { startLightClient } = await import("./client")
       await startLightClient(currentNetwork)
     }
     return {}
   }
 
-  if (!currentNetwork) {
-    throw new Error("Worker not initialized. Call INIT first.")
-  }
   const client = await getActiveClient(currentNetwork)
 
   if (currentClientMode === "light" && "scripts" in payload && Array.isArray(payload.scripts)) {
-    const { ensureScripts } = await import("./client-light")
+    const { ensureScripts } = await import("./client")
     await ensureScripts(payload.scripts)
   }
 
@@ -79,7 +81,7 @@ async function handleMessage(request: WorkerRequest): Promise<WorkerTypeMap[Work
     case "SCAN_UTXO": {
       const res = await scanUTXOAddresses(client, payload.publicKey, payload.chainCode, payload.gapLimit ?? 20)
       if (currentClientMode === "light") {
-        const { ensureScripts } = await import("./client-light")
+        const { ensureScripts } = await import("./client")
         await ensureScripts(res.scripts)
       }
       return res
@@ -149,6 +151,14 @@ async function handleMessage(request: WorkerRequest): Promise<WorkerTypeMap[Work
       return prepareResult(client, tx, lockToPath)
     }
 
+    case "BUILD_FIBER_FUNDING": {
+      return buildFiberFunding(
+        client,
+        payload.tx,
+        payload.scripts.map((s) => ({ script: Script.from(s.script), path: s.path }))
+      )
+    }
+
     case "SEND_TRANSACTION":
       return client.sendTransaction(payload.tx)
 
@@ -167,6 +177,42 @@ async function handleMessage(request: WorkerRequest): Promise<WorkerTypeMap[Work
     case "GET_CELL": {
       const cell = await client.getCell({ txHash: payload.txHash, index: payload.index })
       return cell ? toSerializable(cell) : null
+    }
+
+    case "GET_FUNDING_LOCK_CELL_DEPS": {
+      const lockScript = Script.from(payload.script)
+      const LOCK_SCRIPTS = [
+        KnownScript.Secp256k1Blake160,
+        KnownScript.Secp256k1Multisig,
+        KnownScript.AnyoneCanPay,
+        KnownScript.JoyId,
+        KnownScript.OmniLock,
+        KnownScript.PWLock,
+      ]
+
+      for (const knownScript of LOCK_SCRIPTS) {
+        let scriptInfo
+        try {
+          scriptInfo = await client.getKnownScript(knownScript)
+        } catch {
+          continue
+        }
+
+        if (scriptInfo.codeHash !== lockScript.codeHash || scriptInfo.hashType !== lockScript.hashType) {
+          continue
+        }
+
+        const cellDeps = await client.getCellDeps(scriptInfo.cellDeps)
+        return cellDeps.map((cellDep) => ({
+          dep_type: (cellDep.depType === "depGroup" ? "dep_group" : "code") as "code" | "dep_group",
+          out_point: {
+            tx_hash: cellDep.outPoint.txHash as Hex,
+            index: ("0x" + cellDep.outPoint.index.toString(16)) as Hex,
+          },
+        }))
+      }
+
+      return []
     }
 
     default: {

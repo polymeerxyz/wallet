@@ -26,20 +26,15 @@ import { useConfigStore } from "@/stores/config.store"
 
 export function TransactionPage() {
   const queryClient = useQueryClient()
-  const { scripts, isLoading: isLoadingAddress } = useAddress()
+  const { scripts, address, isLoading: isLoadingAddress } = useAddress()
   const network = useConfigStore((s) => s.network)
 
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["ckb-transactions"] })
   }, [queryClient])
 
-  const {
-    transactions,
-    isLoading: isTxLoading,
-    hasNextPage,
-    fetchNextPage,
-    isFetchingNextPage,
-  } = useTransactions(scripts)
+  const { transactions: allTransactions, isLoading: isTxLoading } = useTransactions(scripts)
+  const transactions = allTransactions.slice(0, 20)
 
   if (isLoadingAddress) {
     return (
@@ -159,16 +154,16 @@ export function TransactionPage() {
               </TableBody>
             </Table>
           </div>
-          {hasNextPage && (
+          {address && (
             <div className="bg-muted/5 border-border/10 flex justify-center border-t py-4">
-              <Button
-                variant="ghost"
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                className="text-muted-foreground/80 hover:text-foreground hover:bg-muted/10 h-8 rounded-xl px-6 text-[10px] font-bold uppercase transition-all"
+              <a
+                href={getExplorerLink(address, network, "address")}
+                target="_blank"
+                rel="noreferrer"
+                className="text-muted-foreground/80 hover:text-foreground text-[10px] font-bold uppercase transition-colors"
               >
-                {isFetchingNextPage ? "Syncing..." : "Load More Activity"}
-              </Button>
+                View All Activity in Explorer &rarr;
+              </a>
             </div>
           )}
         </CardContent>

@@ -46,10 +46,17 @@ export async function prepareResult(client: Client, tx: Transaction, lockToPath:
           `Could not fetch context transaction for input: ${input.previousOutput.txHash}. The Ledger device requires full context transactions for every input.`
         )
       }
+
+      // Hardware wallets like Ledger do not use witnesses of the context transactions for hash verification.
+      // So we can strip them to avoid hitting hardware wallet memory limits when sending AnnotatedTransactions.
+      const contextTxRaw = JSON.parse(stringify(fullTx.transaction))
+      contextTxRaw.witnesses = []
+      const contextTx = Transaction.from(contextTxRaw)
+
       const inputCell = fullTx.transaction.outputs[Number(input.previousOutput.index)]
       const path = lockToPath.get(inputCell.lock.hash()) || "m/44'/309'/0'"
       return {
-        context: fullTx.transaction,
+        context: contextTx,
         path,
       }
     })

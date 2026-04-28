@@ -57,29 +57,24 @@ async function postMessageAsync<M extends WorkerMethod>(
 }
 
 export function useFiberWorker() {
-  const network = useConfigStore((s) => s.network)
-  const clientMode = useConfigStore((s) => s.clientMode)
-
-  const updateConfig = async () => {
-    console.debug("[Fiber Worker Hook] Manually triggering UPDATE_CONFIG for", network)
-    try {
-      const FIBER_KEY_PAIR_STORAGE_KEY = `fiberKeyPair-${network}`
-      let fiberKeyPairHex = localStorage.getItem(FIBER_KEY_PAIR_STORAGE_KEY)
-      if (!fiberKeyPairHex) {
-        fiberKeyPairHex = hexFrom(randomSecretKey())
-        localStorage.setItem(FIBER_KEY_PAIR_STORAGE_KEY, fiberKeyPairHex)
-      }
-
-      await postMessageAsync("UPDATE_CONFIG", { network, clientMode, fiberKeyPairHex })
-      console.debug("[Fiber Worker Hook] UPDATE_CONFIG success")
-    } catch (err) {
-      console.error("[Fiber Worker Hook] Failed to update config:", err)
-      throw err
-    }
-  }
-
   return {
-    updateConfig,
+    updateConfig: async (config: { network: "mainnet" | "testnet"; clientMode: "light" | "full" }) => {
+      const { network, clientMode } = config
+      console.debug("[Fiber Worker Hook] Manually triggering UPDATE_CONFIG for", network)
+      try {
+        const FIBER_KEY_PAIR_STORAGE_KEY = `fiberKeyPair-${network}`
+        let fiberKeyPairHex = localStorage.getItem(FIBER_KEY_PAIR_STORAGE_KEY)
+        if (!fiberKeyPairHex) {
+          fiberKeyPairHex = hexFrom(randomSecretKey())
+          localStorage.setItem(FIBER_KEY_PAIR_STORAGE_KEY, fiberKeyPairHex)
+        }
+        await postMessageAsync("UPDATE_CONFIG", { network, clientMode, fiberKeyPairHex })
+        console.debug("[Fiber Worker Hook] UPDATE_CONFIG success")
+      } catch (err) {
+        console.error("[Fiber Worker Hook] Failed to update config:", err)
+        throw err
+      }
+    },
 
     connectPeer: (params: WorkerTypeMap["CONNECT_PEER"]["payload"]) => postMessageAsync("CONNECT_PEER", params),
 

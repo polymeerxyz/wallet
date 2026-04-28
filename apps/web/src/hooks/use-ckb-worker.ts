@@ -57,25 +57,19 @@ async function postMessageAsync<M extends WorkerMethod>(
 }
 
 export function useCkbWorker() {
-  const network = useConfigStore((s) => s.network)
-  const clientMode = useConfigStore((s) => s.clientMode)
-  const setInitialized = useConfigStore((s) => s.setInitialized)
-
-  const init = async () => {
-    console.debug("[Worker Hook] Manually triggering INIT for", network)
-
-    try {
-      await postMessageAsync("UPDATE_CONFIG", { network, clientMode })
-      setInitialized(true)
-      console.debug("[Worker Hook] INIT success")
-    } catch (err) {
-      console.error("[Worker Hook] Failed to initialize worker:", err)
-      throw err
-    }
-  }
-
   return {
-    init,
+    updateConfig: async (config: { network: "mainnet" | "testnet"; clientMode: "light" | "full" }) => {
+      const { network, clientMode } = config
+      console.debug("[Worker Hook] Manually triggering UPDATE_CONFIG for", network)
+      try {
+        await postMessageAsync("UPDATE_CONFIG", { network, clientMode })
+        console.debug("[Worker Hook] UPDATE_CONFIG success")
+      } catch (err) {
+        console.error("[Worker Hook] Failed to update config:", err)
+        throw err
+      }
+    },
+
     getSingleAddress: (publicKey: string, chainCode: string, isAccountBased: boolean) =>
       postMessageAsync("GET_ADDRESS_SINGLE", {
         publicKey,
@@ -128,11 +122,5 @@ export function useCkbWorker() {
     getSyncProgress: () => postMessageAsync("GET_SYNC_PROGRESS", {}),
 
     getFundingLockCellDeps: (script: ScriptLike) => postMessageAsync("GET_FUNDING_LOCK_CELL_DEPS", { script }),
-
-    updateConfig: (config: { network?: "mainnet" | "testnet"; clientMode?: "light" | "full" }) =>
-      postMessageAsync("UPDATE_CONFIG", {
-        network: config.network ?? network,
-        clientMode: config.clientMode ?? clientMode,
-      }),
   }
 }

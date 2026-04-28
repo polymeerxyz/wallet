@@ -1,7 +1,6 @@
 import { Button, cn, DropdownMenuItem, useIsMobile } from "@polymeer/ui"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { useCkbWorker } from "@/hooks/use-ckb-worker"
 import { useConfigStore } from "@/stores/config.store"
 
 const networks: { value: "mainnet" | "testnet"; label: string; description: string }[] = [
@@ -12,14 +11,12 @@ const networks: { value: "mainnet" | "testnet"; label: string; description: stri
 export function NetworkSwitch() {
   const network = useConfigStore((s) => s.network)
   const setNetwork = useConfigStore((s) => s.setNetwork)
-  const worker = useCkbWorker()
   const queryClient = useQueryClient()
   const isMobile = useIsMobile()
 
   const handleSelect = async (value: "mainnet" | "testnet") => {
     if (value === network) return
     setNetwork(value)
-    await worker.updateConfig({ network: value })
     await queryClient.invalidateQueries()
   }
 

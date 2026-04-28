@@ -1,4 +1,4 @@
-import { type Hex, hexFrom, stringify, Transaction, WitnessArgs } from "@ckb-ccc/core"
+import { type Hex, hexFrom, Transaction, WitnessArgs } from "@ckb-ccc/core"
 import { AlertCircleIcon, CheckmarkCircle02Icon, PencilEdit01Icon, Settings03Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Button, Dialog, DialogContent, DialogDescription, DialogTitle, Spinner, toast } from "@polymeer/ui"
@@ -96,19 +96,54 @@ export function SigningDialog() {
         ledger = await connect()
       }
       if (!ledger) throw new Error("Ledger not connected. Check device and app.")
-      const targetIndex = builtTx.targetWitnessIndex !== undefined ? builtTx.targetWitnessIndex : 0
-      const groupWitnesses = [
-        builtTx.witnesses[targetIndex],
-        ...builtTx.witnesses.slice(builtTx.tx.inputs?.length ?? 0),
-      ]
+      const targetIndex = builtTx.targetWitnessIndex
+      console.debug("[SigningDialog] handleSign:", {
+        targetIndex,
+        inputCount: builtTx.tx.inputs?.length,
+        contextCount: builtTx.contexts.length,
+        witnessCount: builtTx.witnesses.length,
+        signPath: builtTx.signPaths[0],
+        configType: config.type,
+        hasSighash: !!builtTx.sighash,
+      })
 
-      const signatureRaw = await ledger.signTransaction(
-        builtTx.signPaths[0],
-        builtTx.tx,
-        groupWitnesses,
-        builtTx.contexts,
-        builtTx.signPaths[0]
-      )
+      let signatureRaw: string
+      // Fiber funding TXs are structurally rejected by the Ledger CKB app's
+      // AnnotatedTransaction parser (multi-input + multi-output not supported).
+      // Use INS_SIGN_MESSAGE_HASH (0x07) with the pre-computed CKB sighash instead.
+      // Requires "Sign Hash" to be enabled in the Nervos CKB app Settings menu.
+      if (config.type === "fiber_open_channel" && builtTx.sighash) {
+        console.debug("[SigningDialog] Using signTransactionHash for fiber_open_channel, sighash:", builtTx.sighash)
+        try {
+          signatureRaw = await ledger.signTransactionHash(builtTx.signPaths[0], builtTx.sighash)
+        } catch (e) {
+          console.error("[SigningDialog] ledger.signTransactionHash threw:", e)
+          throw new Error(
+            "Ledger rejected the signing request. " +
+              "To sign Fiber channel funding transactions, enable 'Sign Hash' in the Nervos CKB app: " +
+              "open the app on your Ledger, go to Settings → Sign Hash → Yes.",
+            { cause: e }
+          )
+        }
+      } else {
+        const groupWitnesses = [
+          builtTx.witnesses[targetIndex],
+          ...builtTx.witnesses.slice(builtTx.tx.inputs?.length ?? 0),
+        ]
+        try {
+          signatureRaw = await ledger.signTransaction(
+            builtTx.signPaths[0],
+            builtTx.tx,
+            groupWitnesses,
+            builtTx.contexts,
+            builtTx.signPaths[0]
+          )
+        } catch (e) {
+          console.error("[SigningDialog] ledger.signTransaction threw:", e)
+          throw e
+        }
+      }
+      console.debug("[SigningDialog] signed, signatureRaw length:", signatureRaw.length)
 
       setStatus("broadcasting")
 
@@ -123,13 +158,11 @@ export function SigningDialog() {
 
       if (config.type === "fiber_open_channel") {
         // Restore original witnesses before final serialization so the fiber node receives the complete transaction
-        if (builtTx.originalWitnesses) {
-          const finalWitnesses = [...builtTx.originalWitnesses] as Hex[]
-          finalWitnesses[targetIndex] = tx.witnesses[targetIndex] as Hex
-          tx.witnesses = finalWitnesses
+        const signedWitness = tx.witnesses[targetIndex] as Hex
+        const signedTxRpc = {
+          ...config.payload.tx,
+          witnesses: config.payload.tx.witnesses.map((w, i) => (i === targetIndex ? signedWitness : w)),
         }
-
-        const signedTxRpc = JSON.parse(stringify(tx))
         const res = await fiberWorker.submitSignedFundingTx({
           channel_id: config.payload.channelId as Hex,
           signed_funding_tx: signedTxRpc,

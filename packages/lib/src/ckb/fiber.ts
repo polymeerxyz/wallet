@@ -1,12 +1,8 @@
 import type { Client } from "@ckb-ccc/core"
-import { Script, stringify, Transaction } from "@ckb-ccc/core"
+import { bytesFrom, hashCkb, hexFrom, stringify, Transaction, WitnessArgs } from "@ckb-ccc/core"
 import type { CkbJsonRpcTransaction } from "@nervosnetwork/fiber-js"
 
-export async function buildFiberFunding(
-  client: Client,
-  rpcTx: CkbJsonRpcTransaction,
-  scripts: { script: Script; path: string }[]
-) {
+export async function buildFiberFunding(client: Client, rpcTx: CkbJsonRpcTransaction, lockToPath: Map<string, string>) {
   const tx = Transaction.from({
     version: rpcTx.version,
     cellDeps: rpcTx.cell_deps.map((dep) => ({
@@ -29,62 +25,70 @@ export async function buildFiberFunding(
     witnesses: rpcTx.witnesses,
   })
 
-  const lockToPath = new Map(scripts.map((s) => [Script.from(s.script).hash(), s.path]))
-  const userLockHashes = new Set(lockToPath.keys())
-
-  const inputDetails = await Promise.all(
-    tx.inputs.map(async (input) => {
-      const fullTx = await client.getTransaction(input.previousOutput.txHash)
-      if (!fullTx) {
-        throw new Error(
-          `Could not fetch context transaction for input: ${input.previousOutput.txHash}. ` +
-            "The Ledger device requires full context transactions for every input."
-        )
-      }
-
-      // Hardware wallets like Ledger do not use witnesses of the context transactions for hash verification.
-      // So we can strip them to avoid hitting hardware wallet memory limits when sending AnnotatedTransactions.
-      const contextTxRaw = JSON.parse(stringify(fullTx.transaction))
-      contextTxRaw.witnesses = []
-      const contextTx = Transaction.from(contextTxRaw)
-
-      const idx = Number(input.previousOutput.index)
-      const cellOutput = fullTx.transaction.outputs[idx]
-      input.cellOutput = cellOutput
-      input.outputData = fullTx.transaction.outputsData[idx] ?? "0x"
-      return { context: contextTx, lockHash: cellOutput.lock.hash() }
+  const inputResults = await Promise.all(
+    tx.inputs.map(async (input, i) => {
+      const cell = await client.getCell(input.previousOutput)
+      const lockHash = cell?.cellOutput.lock.hash() ?? null
+      const path = (lockHash && lockToPath.get(lockHash)) || "m/44'/309'/0'"
+      return { path, lockHash, index: i }
     })
   )
 
-  let signPath = "m/44'/309'/0'"
-  let targetWitnessIndex = 0
+  const signPaths = inputResults.map((r) => r.path)
 
-  for (let i = 0; i < tx.inputs.length; i++) {
-    if (userLockHashes.has(inputDetails[i].lockHash)) {
-      signPath = lockToPath.get(inputDetails[i].lockHash) ?? "m/44'/309'/0'"
-      targetWitnessIndex = i
-      break
-    }
-  }
+  const signerInput = inputResults.find((r) => r.lockHash !== null && lockToPath.has(r.lockHash))
+  const targetWitnessIndex = signerInput?.index ?? 0
 
   const fee = (await tx.getFee(client)).toString()
 
-  // When sending to hardware wallet, replace the node's dummy witness with "0x"
-  // because hardware wallets (especially Ledger) can choke on unexpectedly large witnesses during parsing.
-  const modifiedWitnesses = [...tx.witnesses]
-  for (let i = 0; i < tx.inputs.length; i++) {
-    if (i !== targetWitnessIndex) {
-      modifiedWitnesses[i] = "0x"
-    }
-  }
-
   return {
     tx: JSON.parse(stringify(tx)),
-    signPaths: [signPath],
+    signPaths,
     targetWitnessIndex,
     fee,
-    contexts: inputDetails.map((d) => JSON.parse(stringify(d.context))),
-    witnesses: modifiedWitnesses,
-    originalWitnesses: tx.witnesses,
+    contexts: [],
+    witnesses: tx.witnesses,
+    sighash: computeCkbSighash(tx),
   }
+}
+
+/**
+ * Compute the CKB sighash for a single-group secp256k1 signing operation.
+ *
+ * The Ledger CKB app's AnnotatedTransaction signing (INS 0x03) rejects
+ * "multi-input multi-output" transactions (2+ distinct input sources AND
+ * 2+ non-change outputs). Fiber funding TXs always hit this case because:
+ *   - Inputs may come from different user addresses
+ *   - FundingLock output (unknown code hash) + additional change outputs
+ *     each count as separate "destinations"
+ *
+ * Instead, we compute the sighash here and use INS_SIGN_MESSAGE_HASH (0x07)
+ * to sign it directly. The device shows "Sign: Message Hash | <hex>" to the user.
+ *
+ * CKB sighash for a lock group = blake2b(
+ *   txHash                              // raw TX hash (no witnesses)
+ *   u64le(witnessArgsLen)               // 8-byte length prefix
+ *   WitnessArgs(lock=65_zero_bytes)     // zeroed placeholder (standard RFC-0020)
+ * )
+ */
+function computeCkbSighash(tx: Transaction): string {
+  // Raw TX hash (no witnesses)
+  const txHash = bytesFrom(tx.hash())
+
+  // Reconstruct the WitnessArgs with the lock field zeroed for signing
+  // (RFC-0020: the placeholder in the witness is always 65 zero bytes for secp256k1)
+  const witnessArgs = WitnessArgs.from({ lock: `0x${"00".repeat(65)}` })
+  const witnessBytes = witnessArgs.toBytes()
+
+  // CKB protocol prefixes each group witness with its byte length as u64 LE
+  const lenBuf = new ArrayBuffer(8)
+  new DataView(lenBuf).setBigUint64(0, BigInt(witnessBytes.length), true)
+
+  // sighash = blake2b("ckb-default-hash", txHash || u64le(len) || witnessBytes)
+  const message = new Uint8Array(txHash.length + 8 + witnessBytes.length)
+  message.set(txHash, 0)
+  message.set(new Uint8Array(lenBuf), txHash.length)
+  message.set(witnessBytes, txHash.length + 8)
+
+  return hexFrom(hashCkb(message))
 }

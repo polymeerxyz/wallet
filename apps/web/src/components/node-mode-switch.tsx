@@ -12,14 +12,12 @@ const modes: { value: "light" | "full"; label: string; description: string }[] =
 export function NodeModeSwitch() {
   const clientMode = useConfigStore((s) => s.clientMode)
   const setClientMode = useConfigStore((s) => s.setClientMode)
-  const worker = useCkbWorker()
   const queryClient = useQueryClient()
   const isMobile = useIsMobile()
 
   const handleSelect = async (mode: "light" | "full") => {
     if (mode === clientMode) return
     setClientMode(mode)
-    await worker.updateConfig({ clientMode: mode })
     await queryClient.invalidateQueries()
   }
 

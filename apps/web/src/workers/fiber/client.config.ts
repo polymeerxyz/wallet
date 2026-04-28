@@ -1,5 +1,14 @@
 import { stringifyYAML } from "confbox"
 
+function stripTypeidDeps(scripts: any[]): any[] {
+  return scripts
+    .map((s) => ({
+      ...s,
+      cell_deps: s.cell_deps.filter((d: any) => !d.type_id),
+    }))
+    .filter((s) => s.cell_deps.length > 0)
+}
+
 const createConfig = (
   network: string,
   bootnodes: string[],
@@ -9,7 +18,9 @@ const createConfig = (
 ) => {
   let rpcUrl = network === "mainnet" ? "https://mainnet.ckb.dev/" : "https://testnet.ckb.dev/"
   if (isLightClient) {
-    rpcUrl = "127.0.0.1:9000"
+    scripts = stripTypeidDeps(scripts)
+    udtWhitelist = stripTypeidDeps(udtWhitelist)
+    rpcUrl = "http://127.0.0.1:9000"
   }
   const config = {
     fiber: {

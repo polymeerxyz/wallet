@@ -51,11 +51,12 @@ export interface TransactionResult {
 export interface BuildResult {
   tx: TransactionLike
   signPaths: string[]
-  targetWitnessIndex?: number
+  targetWitnessIndex: number
   fee: string
   contexts: TransactionLike[]
   witnesses: string[]
-  originalWitnesses?: string[]
+  /** Pre-computed CKB sighash for use with INS_SIGN_MESSAGE_HASH (fiber funding TXs). */
+  sighash?: string
 }
 
 export interface ConfigPayload {

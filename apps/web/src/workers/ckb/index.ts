@@ -152,11 +152,8 @@ async function handleMessage(request: WorkerRequest): Promise<WorkerTypeMap[Work
     }
 
     case "BUILD_FIBER_FUNDING": {
-      return buildFiberFunding(
-        client,
-        payload.tx,
-        payload.scripts.map((s) => ({ script: Script.from(s.script), path: s.path }))
-      )
+      const lockToPath = new Map(payload.scripts.map((s) => [Script.from(s.script).hash(), s.path]))
+      return buildFiberFunding(client, payload.tx, lockToPath)
     }
 
     case "SEND_TRANSACTION":

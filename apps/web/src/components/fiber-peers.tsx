@@ -1,44 +1,17 @@
 import { Copy01Icon, RefreshIcon, UserAdd01Icon, UserMultiple02Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import type { PeerInfo } from "@nervosnetwork/fiber-js"
 import { Button, Input, Skeleton } from "@polymeer/ui"
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 
 import { useFiberWorker } from "@/hooks/use-fiber-worker"
-
-const POLL_INTERVAL_MS = 10_000
+import { usePeers } from "@/hooks/use-peers"
 
 export function FiberPeers() {
   const fiberWorker = useFiberWorker()
-  const [peers, setPeers] = useState<PeerInfo[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
+  const { peers, isLoading, isRefetching: isRefreshing, refetchPeers: refreshPeers } = usePeers()
   const [peerAddress, setPeerAddress] = useState("")
   const [isConnecting, setIsConnecting] = useState(false)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  const refreshPeers = async (silent = false) => {
-    if (!silent) setIsRefreshing(true)
-    try {
-      const res = await fiberWorker.listPeers()
-      setPeers(res.peers ?? [])
-    } catch (err: unknown) {
-      console.error(err)
-    } finally {
-      setIsRefreshing(false)
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    refreshPeers(true)
-    intervalRef.current = setInterval(() => refreshPeers(true), POLL_INTERVAL_MS)
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const handleConnect = async () => {
     if (!peerAddress.trim()) {
@@ -50,7 +23,7 @@ export function FiberPeers() {
       await fiberWorker.connectPeer({ address: peerAddress.trim() })
       toast.success("Connected to peer!")
       setPeerAddress("")
-      await refreshPeers(true)
+      await refreshPeers()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       toast.error("Failed to connect: " + msg)
@@ -99,15 +72,15 @@ export function FiberPeers() {
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <div className="flex items-center gap-2">
                       <code className="text-foreground truncate text-xs leading-none font-bold">
-                        {peer.pubkey ? peer.pubkey : "Unknown"}
+                        {peer.address ? peer.address : "Unknown"}
                       </code>
-                      {peer.pubkey && (
+                      {peer.address && (
                         <Button
                           variant="ghost"
                           size="sm"
                           className="h-4 w-4 shrink-0 bg-transparent p-0 opacity-0 transition-opacity group-hover:opacity-100"
                           onClick={() => {
-                            navigator.clipboard.writeText(peer.pubkey)
+                            navigator.clipboard.writeText(peer.address)
                             toast.success("Copied to clipboard")
                           }}
                         >
@@ -116,7 +89,7 @@ export function FiberPeers() {
                       )}
                     </div>
                     <p className="text-muted-foreground/60 truncate text-[10px] leading-none font-medium">
-                      {peer.address || "—"}
+                      {peer.pubkey || "—"}
                     </p>
                   </div>
                 </div>

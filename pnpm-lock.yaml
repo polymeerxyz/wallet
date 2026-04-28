@@ -144,7 +144,7 @@ importers:
         specifier: 'catalog:'
         version: 19.2.5(react@19.2.5)
       tailwindcss:
-        specifier: ^4
+        specifier: 'catalog:'
         version: 4.2.2
     devDependencies:
       '@polymeer/config':
@@ -280,7 +280,7 @@ importers:
         specifier: 'catalog:'
         version: 17.0.4(i18next@26.0.5(typescript@6.0.3))(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(typescript@6.0.3)
       tailwindcss:
-        specifier: ^4
+        specifier: 'catalog:'
         version: 4.2.2
       zustand:
         specifier: 5.0.12

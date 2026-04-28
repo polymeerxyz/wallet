@@ -1,7 +1,7 @@
 import { MoneySend02Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Button, Input, Tabs, TabsContent, TabsList, TabsTrigger } from "@polymeer/ui"
-import { Link, Navigate } from "@tanstack/react-router"
+import { Link, Navigate, useNavigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
@@ -9,10 +9,14 @@ import { FiberChannels } from "@/components/fiber-channels"
 import { FiberInvoices } from "@/components/fiber-invoices"
 import { FiberPeers } from "@/components/fiber-peers"
 import { useFiberWorker } from "@/hooks/use-fiber-worker"
+import { Route } from "@/routes/_authenticated/fiber"
 import { useConfigStore } from "@/stores/config.store"
 
 export function FiberPage() {
+  const { tab } = Route.useSearch()
+  const navigate = useNavigate({ from: Route.fullPath })
   const network = useConfigStore((s) => s.network)
+  const clientMode = useConfigStore((s) => s.clientMode)
 
   const fiberWorker = useFiberWorker()
   const [targetInvoice, setTargetInvoice] = useState("")
@@ -22,11 +26,10 @@ export function FiberPage() {
   useEffect(() => {
     if (network !== "testnet") return
     fiberWorker
-      .updateConfig()
+      .updateConfig({ network, clientMode })
       .then(() => setIsReady(true))
       .catch(console.error)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [clientMode, fiberWorker, network])
 
   const handleSendPayment = async () => {
     if (!targetInvoice.trim()) {
@@ -86,7 +89,10 @@ export function FiberPage() {
 
       {/* Channels & Invoices Tabs */}
       <section>
-        <Tabs defaultValue="channels">
+        <Tabs
+          value={tab}
+          onValueChange={(value) => navigate({ search: (prev) => ({ ...prev, tab: value as typeof tab }) })}
+        >
           <TabsList>
             <TabsTrigger value="channels">Channels</TabsTrigger>
             <TabsTrigger value="invoices">Invoices</TabsTrigger>

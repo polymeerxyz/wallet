@@ -39,7 +39,7 @@ export async function buildSendCkbTransaction(
 
 export async function prepareResult(client: Client, tx: Transaction, lockToPath: Map<string, string>) {
   const contextResults = await Promise.all(
-    tx.inputs.map(async (input) => {
+    tx.inputs.map(async (input, i) => {
       const fullTx = await client.getTransaction(input.previousOutput.txHash)
       if (!fullTx) {
         throw new Error(
@@ -47,26 +47,27 @@ export async function prepareResult(client: Client, tx: Transaction, lockToPath:
         )
       }
 
-      // Hardware wallets like Ledger do not use witnesses of the context transactions for hash verification.
-      // So we can strip them to avoid hitting hardware wallet memory limits when sending AnnotatedTransactions.
-      const contextTxRaw = JSON.parse(stringify(fullTx.transaction))
-      contextTxRaw.witnesses = []
-      const contextTx = Transaction.from(contextTxRaw)
-
       const inputCell = fullTx.transaction.outputs[Number(input.previousOutput.index)]
-      const path = lockToPath.get(inputCell.lock.hash()) || "m/44'/309'/0'"
+      const lockHash = inputCell.lock.hash()
+      const path = lockToPath.get(lockHash) || "m/44'/309'/0'"
       return {
-        context: contextTx,
+        context: fullTx.transaction,
         path,
+        lockHash,
+        index: i,
       }
     })
   )
 
   const signPaths = contextResults.map((r) => r.path)
 
+  const signerInput = contextResults.find((r) => lockToPath.has(r.lockHash))
+  const targetWitnessIndex = signerInput?.index ?? 0
+
   return {
     tx: JSON.parse(stringify(tx)),
     signPaths,
+    targetWitnessIndex,
     fee: (await tx.getFee(client)).toString(),
     contexts: contextResults.map((r) => JSON.parse(stringify(r.context))),
     witnesses: tx.witnesses,

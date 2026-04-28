@@ -11,7 +11,6 @@ export function useAddress() {
   const derivationStrategy = useWalletStore((s) => s.derivationStrategy)
   const network = useConfigStore((s) => s.network)
   const clientMode = useConfigStore((s) => s.clientMode)
-  const initialized = useConfigStore((s) => s.initialized)
   const worker = useCkbWorker()
 
   const query = useQuery({
@@ -29,7 +28,7 @@ export function useAddress() {
         return await worker.getSingleAddress(publicKey, chainCode, isAccountBased)
       }
     },
-    enabled: initialized && !!publicKey && !!chainCode,
+    enabled: !!publicKey && !!chainCode,
   })
 
   return {

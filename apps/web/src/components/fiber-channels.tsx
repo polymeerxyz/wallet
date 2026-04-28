@@ -2,12 +2,12 @@ import type { Hex } from "@ckb-ccc/core"
 import { hexFrom } from "@ckb-ccc/core"
 import { Copy01Icon, Link01Icon, RefreshIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import type { Channel } from "@nervosnetwork/fiber-js"
 import { Button, Input, Skeleton } from "@polymeer/ui"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 
 import { useAddress } from "@/hooks/use-address"
+import { useChannels } from "@/hooks/use-channels"
 import { useCkbWorker } from "@/hooks/use-ckb-worker"
 import { useFiberWorker } from "@/hooks/use-fiber-worker"
 import { formatAmount, parseAmount } from "@/lib/utils"
@@ -20,33 +20,11 @@ export function FiberChannels() {
   const { open } = useSigningStore()
   const fiberWorker = useFiberWorker()
   const ckbWorker = useCkbWorker()
-  const [channels, setChannels] = useState<Channel[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
+  const { channels, isLoading, isRefetching: isRefreshing, refetchChannels: refreshChannels } = useChannels()
 
-  const [peerAddress, setPeerAddress] = useState("/dns4/testnet.polymeer.xyz/tcp/443/wss/p2p/QmUCjSRnHEhfid6Lfkfko5K4i1xwZRvYuzrUMzs34DzUwm")
+  const [peerAddress, setPeerAddress] = useState("")
   const [fundingAmount, setFundingAmount] = useState("1000")
   const [isOpeningChannel, setIsOpeningChannel] = useState(false)
-
-  const refreshChannels = async (silent = false) => {
-    if (!silent) setIsRefreshing(true)
-    try {
-      const res = await fiberWorker.listChannels({})
-      if (res && res.channels) {
-        setChannels(res.channels)
-      }
-    } catch (err: unknown) {
-      console.error(err)
-    } finally {
-      setIsRefreshing(false)
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    refreshChannels(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const handleOpenChannel = async () => {
     if (!peerAddress.trim() || !fundingAmount.trim()) {
@@ -63,9 +41,18 @@ export function FiberChannels() {
       let peers = await fiberWorker.listPeers()
       if (!peers.peers.some((p) => p.address === address)) {
         await fiberWorker.connectPeer({ address, save: true })
-        peers = await fiberWorker.listPeers()
       }
-      const peer = peers.peers.find((p) => p.address === address)
+
+      let peer = peers.peers.find((p) => p.address === address)
+      if (!peer) {
+        for (let i = 0; i < 10; i++) {
+          await new Promise((r) => setTimeout(r, 500))
+          peers = await fiberWorker.listPeers()
+          peer = peers.peers.find((p) => p.address === address)
+          if (peer) break
+        }
+      }
+
       if (!peer) {
         toast.error("Failed to connect to peer or peer not found after connecting.")
         return
@@ -99,8 +86,6 @@ export function FiberChannels() {
         funding_fee_rate: ("0x" + OPEN_CHANNEL_FUNDING_FEE_RATE.toString(16)) as Hex,
       })
 
-      console.log("Open channel response:", JSON.stringify(res, null, 2))
-
       open({
         type: "fiber_open_channel",
         payload: {
@@ -121,14 +106,15 @@ export function FiberChannels() {
   }
 
   const handleCloseChannel = async (channelId: string, stateName?: string) => {
+    console.log(channelId, stateName)
     try {
       if (stateName === "NegotiatingFunding") {
         await fiberWorker.abandonChannel({ channel_id: channelId as Hex })
       } else {
-        await fiberWorker.closeChannel({ channel_id: channelId as Hex })
+        await fiberWorker.closeChannel({ channel_id: channelId as Hex, force: true })
       }
       toast.success("Channel closed.")
-      await refreshChannels(true)
+      await refreshChannels()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
       toast.error("Failed to close channel: " + msg)

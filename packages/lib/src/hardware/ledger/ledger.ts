@@ -125,7 +125,7 @@ export function buildAnnotatedTransaction(
  * Nervos API
  *
  * @example
- * import { LedgerCKB } from "@polymeerxyz/hardware";
+ * import { LedgerCKB } from "@polymeerxyz/lib";
  * const ledgerCKB = new LedgerCKB(transport);
  */
 export default class LedgerCKB {
@@ -153,7 +153,17 @@ export default class LedgerCKB {
       `Ledger [send] CLA=${cla.toString(16)} INS=${ins.toString(16)} P1=${p1.toString(16)} P2=${p2.toString(16)} data:`,
       data
     )
-    return await this.transport.send(cla, ins, p1, p2, data)
+    let response: Buffer
+    try {
+      response = await this.transport.send(cla, ins, p1, p2, data)
+    } catch (e) {
+      console.error(`Ledger [recv] INS=${ins.toString(16)} P1=${p1.toString(16)} THREW:`, e)
+      throw e
+    }
+    console.debug(
+      `Ledger [recv] INS=${ins.toString(16)} P1=${p1.toString(16)} ${response.byteLength} bytes: ${response.toString("hex")}`
+    )
+    return response
   }
 
   /**
@@ -263,7 +273,6 @@ export default class LedgerCKB {
     )
 
     const annotatedTx = buildAnnotatedTransaction(signPath, tx, groupWitnesses, contexts, changePath)
-    console.debug("[Ledger] buildAnnotatedTransaction completed")
     return await this.signAnnotatedTransaction(annotatedTx)
   }
 
@@ -271,7 +280,6 @@ export default class LedgerCKB {
    * Sign an already constructed AnnotatedTransaction.
    */
   async signAnnotatedTransaction(tx: AnnotatedTransaction): Promise<string> {
-    console.debug("[Ledger] signAnnotatedTransaction encoding...")
     let rawAnTx: Buffer
     try {
       rawAnTx = Buffer.from(SerializeAnnotatedTransaction.encode(tx))
@@ -296,7 +304,17 @@ export default class LedgerCKB {
     const lastOffset = txFullChunks * maxApduSize
     const lastData = rawAnTx.subarray(lastOffset, lastOffset + maxApduSize)
     console.debug(`[Ledger] Sending chunk ${totalChunks}/${totalChunks}...`)
-    const response = await this.sendAPDU(0x03, isContinuation | 0x80, 0x00, Buffer.from(lastData))
+    let response: Buffer
+    try {
+      response = await this.sendAPDU(0x03, isContinuation | 0x80, 0x00, Buffer.from(lastData))
+    } catch (e) {
+      console.error(`[Ledger] Final chunk APDU failed:`, e)
+      throw e
+    }
+    console.debug(`[Ledger] Final chunk response: ${response.byteLength} bytes, hex=${response.toString("hex")}`)
+    if (response.byteLength < 65) {
+      throw new Error(`[Ledger] Unexpected response length ${response.byteLength}, expected 65 bytes for signature`)
+    }
     return response.subarray(0, 65).toString("hex")
   }
 
@@ -338,6 +356,43 @@ export default class LedgerCKB {
   }
 
   /**
+   * Sign a pre-computed 32-byte hash directly with a given BIP 32 path.
+   *
+   * Requires "Sign Hash" to be enabled in the Nervos CKB app Settings menu.
+   *
+   * @param path a path in BIP 32 format
+   * @param sighash a 32-byte CKB sighash as a 0x-prefixed hex string
+   * @return a 65-byte recoverable secp256k1 signature as hex string
+   */
+  async signTransactionHash(path: string, sighash: string): Promise<string> {
+    const bipPath = prepBipPath(path)
+
+    // Set the signing key path
+    const pathData = Buffer.alloc(1 + bipPath.length * 4)
+    pathData.writeUInt8(bipPath.length, 0)
+    bipPath.forEach((seg, i) => {
+      pathData.writeUInt32BE(seg, 1 + i * 4)
+    })
+    await this.sendAPDU(0x07, 0x00, 0x00, pathData)
+
+    // Send the 32-byte hash (P1 = P1_LAST_MARKER = 0x80)
+    const hashHex = sighash.startsWith("0x") ? sighash.slice(2) : sighash
+    const hashBytes = Buffer.from(hashHex, "hex")
+    if (hashBytes.byteLength !== 32) {
+      throw new Error(`[Ledger] signTransactionHash: expected 32-byte hash, got ${hashBytes.byteLength}`)
+    }
+    const response = await this.sendAPDU(0x07, 0x80, 0x00, hashBytes)
+
+    if (response.byteLength < 65) {
+      throw new Error(
+        `[Ledger] signTransactionHash: unexpected response length ${response.byteLength}, expected 65 bytes. ` +
+          "Make sure 'Sign Hash' is enabled in the Nervos CKB app Settings menu."
+      )
+    }
+    return response.subarray(0, 65).toString("hex")
+  }
+
+  /**
    * Sign a Nervos message with a given BIP 32 path
    *
    * @param path a path in BIP 32 format
@@ -350,7 +405,7 @@ export default class LedgerCKB {
     const magicBytes = Buffer.from("Nervos Message:")
     const rawMsg = Buffer.concat([magicBytes, Buffer.from(rawMsgHex, "hex")])
 
-    //Init apdu
+    // Init apdu
     const rawPath = Buffer.alloc(1 + 1 + bipPath.length * 4)
     rawPath.writeInt8(displayHex ? 1 : 0, 0)
     rawPath.writeInt8(bipPath.length, 1)

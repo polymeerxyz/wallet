@@ -34,12 +34,12 @@ export type WorkerMethod =
 export interface ConfigPayload {
   network: "mainnet" | "testnet"
   clientMode: "light" | "full"
-  fiberKeyPairHex: string
+  fiberSecretKeyHex: string
 }
 
 export interface WorkerTypeMap {
   UPDATE_CONFIG: { payload: ConfigPayload; result: Record<string, never> }
-  CONNECT_PEER: { payload: ConnectPeerParams; result: void }
+  CONNECT_PEER: { payload: ConnectPeerParams; result: string }
   LIST_PEERS: { payload: Record<string, never>; result: ListPeerResult }
   OPEN_CHANNEL_WITH_EXTERNAL_FUNDING: {
     payload: OpenChannelWithExternalFundingParams

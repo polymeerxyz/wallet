@@ -62,13 +62,13 @@ export function useFiberWorker() {
       const { network, clientMode } = config
       console.debug("[Fiber Worker Hook] Manually triggering UPDATE_CONFIG for", network)
       try {
-        const FIBER_KEY_PAIR_STORAGE_KEY = `fiberKeyPair-${network}`
-        let fiberKeyPairHex = localStorage.getItem(FIBER_KEY_PAIR_STORAGE_KEY)
-        if (!fiberKeyPairHex) {
-          fiberKeyPairHex = hexFrom(randomSecretKey())
-          localStorage.setItem(FIBER_KEY_PAIR_STORAGE_KEY, fiberKeyPairHex)
+        const FIBER_SECRET_KEY_STORAGE_KEY = `fiber-secret-key-${network}`
+        let fiberSecretKeyHex = localStorage.getItem(FIBER_SECRET_KEY_STORAGE_KEY)
+        if (!fiberSecretKeyHex) {
+          fiberSecretKeyHex = hexFrom(randomSecretKey())
+          localStorage.setItem(FIBER_SECRET_KEY_STORAGE_KEY, fiberSecretKeyHex)
         }
-        await postMessageAsync("UPDATE_CONFIG", { network, clientMode, fiberKeyPairHex })
+        await postMessageAsync("UPDATE_CONFIG", { network, clientMode, fiberSecretKeyHex })
         console.debug("[Fiber Worker Hook] UPDATE_CONFIG success")
       } catch (err) {
         console.error("[Fiber Worker Hook] Failed to update config:", err)

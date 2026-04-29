@@ -48,7 +48,11 @@ export async function buildFiberFunding(client: Client, rpcTx: CkbJsonRpcTransac
     fee,
     contexts: [],
     witnesses: tx.witnesses,
-    sighash: computeCkbSighash(tx),
+    sighash: computeCkbSighash(
+      tx,
+      targetWitnessIndex,
+      inputResults.map((r) => r.lockHash)
+    ),
   }
 }
 
@@ -65,30 +69,64 @@ export async function buildFiberFunding(client: Client, rpcTx: CkbJsonRpcTransac
  * Instead, we compute the sighash here and use INS_SIGN_MESSAGE_HASH (0x07)
  * to sign it directly. The device shows "Sign: Message Hash | <hex>" to the user.
  *
- * CKB sighash for a lock group = blake2b(
- *   txHash                              // raw TX hash (no witnesses)
- *   u64le(witnessArgsLen)               // 8-byte length prefix
- *   WitnessArgs(lock=65_zero_bytes)     // zeroed placeholder (standard RFC-0020)
- * )
+ * CKB sighash-all for a lock group (RFC-0020):
+ *   blake2b(
+ *     txHash                                    // raw TX hash (no witnesses)
+ *     u64le(len) || witnesses[targetIdx]_zeroed // zeroed placeholder for the signing input
+ *     u64le(len) || witnesses[i]...             // all other inputs in the same lock group
+ *     u64le(len) || witnesses[j]...             // extra witnesses (index >= inputs.length)
+ *   )
+ *
+ * @param inputLockHashes - lock hash for each tx input (null if cell could not be fetched)
  */
-function computeCkbSighash(tx: Transaction): string {
-  // Raw TX hash (no witnesses)
+function computeCkbSighash(tx: Transaction, targetWitnessIndex: number, inputLockHashes: (string | null)[]): string {
   const txHash = bytesFrom(tx.hash())
+  const targetLockHash = inputLockHashes[targetWitnessIndex]
+  const inputCount = tx.inputs.length
 
-  // Reconstruct the WitnessArgs with the lock field zeroed for signing
-  // (RFC-0020: the placeholder in the witness is always 65 zero bytes for secp256k1)
-  const witnessArgs = WitnessArgs.from({ lock: `0x${"00".repeat(65)}` })
-  const witnessBytes = witnessArgs.toBytes()
+  const parts: Uint8Array[] = [txHash]
 
-  // CKB protocol prefixes each group witness with its byte length as u64 LE
-  const lenBuf = new ArrayBuffer(8)
-  new DataView(lenBuf).setBigUint64(0, BigInt(witnessBytes.length), true)
+  const pushLenPrefixed = (bytes: Uint8Array) => {
+    const lenBuf = new ArrayBuffer(8)
+    new DataView(lenBuf).setBigUint64(0, BigInt(bytes.length), true)
+    parts.push(new Uint8Array(lenBuf))
+    parts.push(bytes)
+  }
 
-  // sighash = blake2b("ckb-default-hash", txHash || u64le(len) || witnessBytes)
-  const message = new Uint8Array(txHash.length + 8 + witnessBytes.length)
-  message.set(txHash, 0)
-  message.set(new Uint8Array(lenBuf), txHash.length)
-  message.set(witnessBytes, txHash.length + 8)
+  // Target witness: preserve any input_type/output_type fields but zero the lock field.
+  const targetWitnessHex = tx.witnesses[targetWitnessIndex]
+  const targetWitnessBytes = targetWitnessHex ? bytesFrom(targetWitnessHex) : new Uint8Array(0)
+  let targetArgs: WitnessArgs
+  if (targetWitnessBytes.length > 0) {
+    targetArgs = WitnessArgs.fromBytes(targetWitnessBytes)
+  } else {
+    targetArgs = WitnessArgs.from({ lock: `0x${"00".repeat(65)}` })
+  }
+  targetArgs.lock = `0x${"00".repeat(65)}`
+  pushLenPrefixed(targetArgs.toBytes())
+
+  // Same-group witnesses: subsequent inputs sharing the same lock hash.
+  // Each contributes u64le(len) || witness_bytes to the sighash.
+  for (let i = targetWitnessIndex + 1; i < inputCount; i++) {
+    if (inputLockHashes[i] !== null && inputLockHashes[i] === targetLockHash) {
+      const w = tx.witnesses[i]
+      pushLenPrefixed(w ? bytesFrom(w) : new Uint8Array(0))
+    }
+  }
+
+  // Extra witnesses (index >= inputCount) are always included.
+  for (let i = inputCount; i < tx.witnesses.length; i++) {
+    const w = tx.witnesses[i]
+    pushLenPrefixed(w ? bytesFrom(w) : new Uint8Array(0))
+  }
+
+  const totalLen = parts.reduce((sum, p) => sum + p.length, 0)
+  const message = new Uint8Array(totalLen)
+  let offset = 0
+  for (const part of parts) {
+    message.set(part, offset)
+    offset += part.length
+  }
 
   return hexFrom(hashCkb(message))
 }

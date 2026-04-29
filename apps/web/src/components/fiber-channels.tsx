@@ -22,7 +22,9 @@ export function FiberChannels() {
   const ckbWorker = useCkbWorker()
   const { channels, isLoading, isRefetching: isRefreshing, refetchChannels: refreshChannels } = useChannels()
 
-  const [peerAddress, setPeerAddress] = useState("")
+  const [peerAddress, setPeerAddress] = useState(
+    "/dns4/testnet.polymeer.xyz/tcp/443/wss/p2p/QmZPmSNMysTDTHFJ6xLAV8DawnC9mxog8RDMTgV5p8yZU8"
+  )
   const [fundingAmount, setFundingAmount] = useState("1000")
   const [isOpeningChannel, setIsOpeningChannel] = useState(false)
 

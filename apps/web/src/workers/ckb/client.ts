@@ -29,11 +29,7 @@ export async function startLightClient(network: "mainnet" | "testnet"): Promise<
     startPromise = lightClientWasm.start(networkSetting, secretKey, "error", "ws")
   }
 
-  const timeoutPromise = new Promise<void>((_, reject) =>
-    setTimeout(() => reject(new Error("Light Client failed to start within 30 seconds")), 30000)
-  )
-
-  await Promise.race([startPromise, timeoutPromise])
+  await startPromise
   return new ClientLight(network, lightClientWasm!)
 }
 

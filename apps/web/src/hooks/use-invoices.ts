@@ -2,7 +2,7 @@ import type { GetInvoiceResult, InvoiceResult } from "@nervosnetwork/fiber-js"
 import { useQuery } from "@tanstack/react-query"
 
 import { useConfigStore } from "@/stores/config.store"
-import { useInvoiceStore } from "@/stores/invoice.store"
+import { useFiberInvoiceStore } from "@/stores/fiber-invoice.store"
 
 import { useFiberWorker } from "./use-fiber-worker"
 
@@ -12,14 +12,14 @@ export function useInvoices() {
   const worker = useFiberWorker()
   const network = useConfigStore((s) => s.network)
   const clientMode = useConfigStore((s) => s.clientMode)
-  const storedInvoices = useInvoiceStore((s) => s.invoices[network] || [])
+  const invoices = useFiberInvoiceStore((s) => s.invoices[network] || [])
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ["fiber-invoices", network, clientMode, storedInvoices.map((i) => i.invoice.data.payment_hash)],
+    queryKey: ["fiber-invoices", network, clientMode, invoices.map((i) => i.invoice.data.payment_hash)],
     queryFn: async () => {
-      if (storedInvoices.length === 0) return []
+      if (invoices.length === 0) return []
       const results = await Promise.all(
-        storedInvoices.map(async (inv) => {
+        invoices.map(async (inv) => {
           try {
             const res = await worker.getInvoice({
               payment_hash: inv.invoice.data.payment_hash as `0x${string}`,
@@ -37,12 +37,12 @@ export function useInvoices() {
       return results
     },
     refetchInterval: 10000,
-    enabled: storedInvoices.length > 0,
-    initialData: storedInvoices as ExtendedInvoice[],
+    enabled: invoices.length > 0,
+    initialData: invoices as ExtendedInvoice[],
   })
 
   return {
-    invoices: data ?? (storedInvoices as ExtendedInvoice[]),
+    invoices: data,
     isLoading,
     isRefetching,
     refetchInvoices: refetch,

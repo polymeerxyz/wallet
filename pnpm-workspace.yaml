@@ -9,14 +9,12 @@ catalog:
   "@eslint/js": ^10
   "@hugeicons/core-free-icons": ^4
   "@hugeicons/react": ^1
-  "@ledgerhq/hw-transport": "6.35.0"
-  "@ledgerhq/hw-transport-webhid": "6.35.0"
+  "@ledgerhq/hw-transport": "6.35.1"
+  "@ledgerhq/hw-transport-webhid": "6.35.1"
   "@multiformats/multiaddr": "13.0.1"
   "@nervosnetwork/fiber-js": "0.8.1"
   "@noble/curves": "2.2.0"
-  "@scure/bip32": "2.0.1"
-  "@sentry/cloudflare": ^10
-  "@sentry/react": ^10
+  "@scure/bip32": "2.2.0"
   "@types/node": ^24
   "@types/react": ^19
   "@types/react-dom": ^19
@@ -27,8 +25,8 @@ catalog:
   eslint: ^10
   i18next: ^26
   jsdom: ^29
-  next-themes: 0.4.6
   prettier: ^3
+  prettier-plugin-tailwindcss: ^0.8
   react: ^19
   react-dom: ^19
   react-i18next: ^17
@@ -37,7 +35,7 @@ catalog:
   typescript-eslint: ^8
   vite: ^8
   vite-plugin-svgr: ^5
-  vitest: ^4.1.4
+  vitest: ^4
   wrangler: ^4
 
 hoist: true

@@ -49,7 +49,7 @@ function DaoProgressBar({ targetEpoch, type }: { targetEpoch?: EpochLike; type: 
   const { progress, isExpiringSoon } = calculateCycleInfo(targetEpoch, tip)
 
   return (
-    <div className="w-full space-y-1.5 md:max-w-[160px]">
+    <div className="w-full space-y-1.5 md:max-w-40">
       <div className="flex items-center justify-between gap-1 px-0.5">
         <span className="text-muted-foreground/50 text-[8px] font-semibold uppercase">
           {type === "deposit" ? "Cycle" : "Maturity"}
@@ -153,8 +153,23 @@ export function DaoPage() {
   const totalProfit = cells.reduce((acc, c) => acc + BigInt(c.info?.profit || "0"), 0n)
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 w-full max-w-4xl space-y-4 duration-700">
-      {/* Header & Stats */}
+    <div className="animate-in fade-in slide-in-from-bottom-4 w-full max-w-4xl space-y-6 duration-700">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold">Nervos DAO</h1>
+          <p className="text-muted-foreground/50 text-[10px] font-semibold tracking-wider uppercase">
+            Stake CKB · Earn Issuance
+          </p>
+        </div>
+        <Link
+          to="/"
+          className="text-muted-foreground/60 hover:text-primary text-[10px] font-bold uppercase transition-colors"
+        >
+          Back to Overview
+        </Link>
+      </div>
+
       {/* Stats Grid */}
       <div className="grid gap-3 md:grid-cols-3">
         <div className="border-border/40 bg-muted/5 flex flex-col justify-center rounded-2xl border p-4">
@@ -193,10 +208,15 @@ export function DaoPage() {
           <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
             <HugeiconsIcon icon={SafeIcon} className="text-primary" size={16} />
           </div>
-          <h3 className="text-muted-foreground/70 text-[10px] font-bold uppercase">Deposit to Nervos DAO</h3>
+          <div>
+            <h3 className="text-muted-foreground/70 text-[10px] font-bold tracking-wider uppercase">
+              Deposit to Nervos DAO
+            </h3>
+            <p className="text-muted-foreground/50 mt-1 text-[10px]">Minimum 102 CKB. Locked per 180-epoch cycle.</p>
+          </div>
         </div>
 
-        <div className="border-border/40 bg-muted/5 space-y-3 rounded-2xl border p-5">
+        <div className="border-border/40 bg-muted/5 space-y-4 rounded-3xl border p-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label className="text-muted-foreground/60 px-1 text-[10px] font-bold uppercase">Amount</label>
@@ -243,7 +263,10 @@ export function DaoPage() {
             <div className="bg-muted/10 flex h-8 w-8 items-center justify-center rounded-lg">
               <HugeiconsIcon icon={Coins01Icon} className="text-muted-foreground" size={16} />
             </div>
-            <h3 className="text-muted-foreground/70 text-[10px] font-bold uppercase">Your Deposits</h3>
+            <div>
+              <h3 className="text-muted-foreground/70 text-[10px] font-bold tracking-wider uppercase">Your Deposits</h3>
+              <p className="text-muted-foreground/50 mt-0.5 text-[10px]">Active staking positions</p>
+            </div>
           </div>
           <span className="text-muted-foreground/40 text-[10px] font-bold uppercase">{cells.length} Active</span>
         </div>
@@ -311,7 +334,7 @@ export function DaoPage() {
 
                 {/* Right Column: Reward/Estimate and Action */}
                 <div className="flex items-center justify-between gap-4 md:justify-end">
-                  <div className="min-w-[100px] shrink-0 text-right">
+                  <div className="min-w-25 shrink-0 text-right">
                     {item.info?.type === "deposit" ? (
                       <div>
                         <p className="text-muted-foreground/50 text-[8px] font-bold uppercase">APY</p>
@@ -343,15 +366,6 @@ export function DaoPage() {
           )}
         </div>
       </section>
-
-      <div className="flex justify-center pt-4">
-        <Link
-          to="/"
-          className="text-muted-foreground/60 hover:text-primary text-[10px] font-bold uppercase transition-colors"
-        >
-          Back to Overview
-        </Link>
-      </div>
     </div>
   )
 }

@@ -34,10 +34,6 @@ export function OverviewPage() {
   const queryClient = useQueryClient()
   const { address, scripts, scriptsWithPaths, isLoading: isLoadingAddress } = useAddress()
 
-  useEffect(() => {
-    queryClient.invalidateQueries({ queryKey: ["ckb-balance"] })
-  }, [queryClient])
-
   const clearWallet = useWalletStore((state) => state.clearWallet)
   const isReadOnly = useWalletStore((state) => state.isReadOnly)
   const derivationStrategy = useWalletStore((state) => state.derivationStrategy)
@@ -46,9 +42,11 @@ export function OverviewPage() {
   const navigate = useNavigate()
 
   const { data: totalBalance, isLoading: isTotalBalanceLoading } = useBalance(scripts)
-
-  // Fetch individual balances for each address
   const individualBalances = useBalances(scriptsWithPaths)
+
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["ckb-balance"] })
+  }, [queryClient])
 
   const disconnect = () => {
     clearWallet()
@@ -130,17 +128,19 @@ export function OverviewPage() {
             </div>
           </div>
         </Link>
-        <Link to="/fiber" className="block col-span-2">
-          <div className="border-foreground/10 bg-foreground/5 hover:bg-foreground/10 group flex flex-col justify-between rounded-2xl border p-3.5 transition-all hover:scale-[1.01]">
-            <div className="bg-foreground/5 mb-3 flex h-10 w-10 items-center justify-center rounded-xl">
-              <HugeiconsIcon icon={Link01Icon} size={20} className="text-foreground/80" />
+        {network === "testnet" && (
+          <Link to="/fiber" className="col-span-2 block">
+            <div className="border-foreground/10 bg-foreground/5 hover:bg-foreground/10 group flex flex-col justify-between rounded-2xl border p-3.5 transition-all hover:scale-[1.01]">
+              <div className="bg-foreground/5 mb-3 flex h-10 w-10 items-center justify-center rounded-xl">
+                <HugeiconsIcon icon={Link01Icon} size={20} className="text-foreground/80" />
+              </div>
+              <div>
+                <p className="text-foreground text-[13px] font-bold">Fiber Network</p>
+                <p className="text-foreground/50 text-[9px] font-semibold uppercase">Lightning</p>
+              </div>
             </div>
-            <div>
-              <p className="text-foreground text-[13px] font-bold">Fiber Network</p>
-              <p className="text-foreground/50 text-[9px] font-semibold uppercase">Lightning</p>
-            </div>
-          </div>
-        </Link>
+          </Link>
+        )}
       </section>
 
       {/* Asset Details / UTXO Addresses */}
@@ -176,12 +176,12 @@ export function OverviewPage() {
               >
                 Fixed Address
               </DropdownMenuItem>
-              <DropdownMenuItem
+              {/* <DropdownMenuItem
                 className="text-xs font-bold"
                 onClick={() => setDerivationStrategy(WalletDerivationStrategy.UTXO_BASED)}
               >
                 UTXO / BIP 44
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

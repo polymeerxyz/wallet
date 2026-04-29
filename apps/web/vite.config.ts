@@ -27,6 +27,18 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    worker: {
+      rolldownOptions: {
+        output: {
+          minify: {
+            compress: {
+              dropConsole: true,
+              dropDebugger: true,
+            },
+          },
+        },
+      },
+    },
     define: {
       "process.env.VITE_GTM_ID": JSON.stringify(VITE_GTM_ID),
     },

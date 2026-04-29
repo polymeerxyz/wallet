@@ -10,6 +10,7 @@ interface PendingDaoTx {
 
 interface DaoState {
   pendingTransactions: PendingDaoTx[]
+
   addPendingTransaction: (tx: PendingDaoTx) => void
   removePendingTransaction: (txHash: string) => void
   clearPendingTransactions: () => void
@@ -30,7 +31,7 @@ export const useDaoStore = create<DaoState>()(
       clearPendingTransactions: () => set({ pendingTransactions: [] }),
     }),
     {
-      name: "polymeer-dao-store",
+      name: "dao-storage",
     }
   )
 )

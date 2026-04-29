@@ -1,5 +1,5 @@
 import type { Client, Hex } from "@ckb-ccc/core"
-import { Cell, ClientPublicMainnet, ClientPublicTestnet, KnownScript, numFrom, Script } from "@ckb-ccc/core"
+import { Cell, ClientPublicMainnet, ClientPublicTestnet, KnownScript, numFrom, numToHex, Script } from "@ckb-ccc/core"
 import type { ClientLight } from "@polymeer/lib"
 import {
   buildDaoAction,
@@ -204,7 +204,7 @@ async function handleMessage(request: WorkerRequest): Promise<WorkerTypeMap[Work
           dep_type: (cellDep.depType === "depGroup" ? "dep_group" : "code") as "code" | "dep_group",
           out_point: {
             tx_hash: cellDep.outPoint.txHash as Hex,
-            index: ("0x" + cellDep.outPoint.index.toString(16)) as Hex,
+            index: numToHex(cellDep.outPoint.index),
           },
         }))
       }

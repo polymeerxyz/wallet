@@ -16,17 +16,16 @@ const createConfig = (
   udtWhitelist: any[],
   isLightClient = false
 ) => {
-  let rpcUrl = network === "mainnet" ? "https://mainnet.ckb.dev/" : "https://testnet.ckb.dev/"
+  const rpcUrl = network === "mainnet" ? "https://mainnet.ckb.dev/" : "https://testnet.ckb.dev/"
   if (isLightClient) {
     scripts = stripTypeidDeps(scripts)
     udtWhitelist = stripTypeidDeps(udtWhitelist)
-    rpcUrl = "http://127.0.0.1:9000"
   }
   const config = {
     fiber: {
       listening_addr: "/ip4/0.0.0.0/tcp/8228",
       bootnode_addrs: bootnodes,
-      announce_listening_addr: true,
+      announce_listening_addr: false,
       announced_addrs: [],
       chain: network,
       scripts: scripts,

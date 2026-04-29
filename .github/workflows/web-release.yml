@@ -52,6 +52,7 @@ jobs:
         run: pnpm --filter @polymeer/web build
         env:
           VITE_GTM_ID: GTM-MNCTWWT6
+          VITE_COMMIT_HASH: ${{ github.sha }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v6

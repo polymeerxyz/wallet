@@ -101,11 +101,11 @@ export function ConnectPage() {
                   label: "Fixed Address",
                   desc: "Simplified one-address mode",
                 },
-                {
-                  value: WalletDerivationStrategy.UTXO_BASED,
-                  label: "UTXO / BIP-44",
-                  desc: "Enhanced privacy and security",
-                },
+                // {
+                //   value: WalletDerivationStrategy.UTXO_BASED,
+                //   label: "UTXO / BIP-44",
+                //   desc: "Enhanced privacy and security",
+                // },
               ].map((item) => (
                 <Label
                   key={item.value}

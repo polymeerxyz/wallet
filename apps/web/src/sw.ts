@@ -4,6 +4,8 @@ import { addPlugins, cleanupOutdatedCaches, precacheAndRoute } from "workbox-pre
 import { NavigationRoute, registerRoute, setDefaultHandler } from "workbox-routing"
 import { NetworkFirst, NetworkOnly } from "workbox-strategies"
 
+import { registerCkbRpcProxy } from "./sw-ckb-rpc-proxy"
+
 declare const self: ServiceWorkerGlobalScope & typeof globalThis
 
 skipWaiting()
@@ -87,5 +89,8 @@ addPlugins([securityPlugin])
 precacheAndRoute(self.__WB_MANIFEST)
 cleanupOutdatedCaches()
 
-// 4. Catch-all fallback
+// 4. CKB RPC proxy for Fiber WASM → CKB light client bridge
+registerCkbRpcProxy()
+
+// 5. Catch-all fallback
 setDefaultHandler(new NetworkOnly({ plugins: [securityPlugin] }))

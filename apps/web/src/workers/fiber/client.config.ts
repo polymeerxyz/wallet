@@ -16,10 +16,13 @@ const createConfig = (
   udtWhitelist: any[],
   isLightClient = false
 ) => {
-  const rpcUrl = network === "mainnet" ? "https://mainnet.ckb.dev/" : "https://testnet.ckb.dev/"
+  let rpcUrl: string
   if (isLightClient) {
     scripts = stripTypeidDeps(scripts)
     udtWhitelist = stripTypeidDeps(udtWhitelist)
+    rpcUrl = `${self.location.origin}/ckb-rpc-proxy`
+  } else {
+    rpcUrl = network === "mainnet" ? "https://mainnet.ckb.dev/" : "https://testnet.ckb.dev/"
   }
   const config = {
     fiber: {

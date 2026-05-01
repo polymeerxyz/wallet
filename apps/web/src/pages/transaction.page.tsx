@@ -1,20 +1,6 @@
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  cn,
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@polymeer/ui"
+import { Invoice01Icon } from "@hugeicons/core-free-icons"
+import { HugeiconsIcon } from "@hugeicons/react"
+import { Badge, cn, Skeleton, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@polymeer/ui"
 import { useQueryClient } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { useEffect } from "react"
@@ -45,24 +31,38 @@ export function TransactionPage() {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 w-full max-w-4xl space-y-4 duration-700">
-      <Card className="border-border/50 bg-muted/10 overflow-hidden rounded-3xl border shadow-none">
-        <CardHeader className="border-border/50 border-b px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Link to="/">
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl transition-all">
-                <span className="text-lg leading-none font-bold">&larr;</span>
-              </Button>
-            </Link>
-            <div className="space-y-0.5">
-              <CardTitle className="text-foreground text-lg font-bold">Activity</CardTitle>
-              <CardDescription className="text-muted-foreground/70 text-xs font-medium italic">
-                Past transactions and status
-              </CardDescription>
-            </div>
+    <div className="animate-in fade-in slide-in-from-bottom-4 w-full max-w-4xl space-y-6 duration-700">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold">Activity</h1>
+          <p className="text-muted-foreground/50 text-[10px] font-semibold tracking-wider uppercase">
+            Past transactions and status
+          </p>
+        </div>
+        <Link
+          to="/"
+          className="text-muted-foreground/60 hover:text-primary text-[10px] font-bold uppercase transition-colors"
+        >
+          Back to Overview
+        </Link>
+      </div>
+
+      {/* Transactions List */}
+      <section className="space-y-4">
+        <div className="flex items-center gap-3 px-1">
+          <div className="bg-muted/10 flex h-8 w-8 items-center justify-center rounded-lg">
+            <HugeiconsIcon icon={Invoice01Icon} className="text-muted-foreground" size={16} />
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
+          <div>
+            <h3 className="text-muted-foreground/70 text-[10px] font-bold tracking-wider uppercase">
+              Transaction History
+            </h3>
+            <p className="text-muted-foreground/50 mt-0.5 text-[10px]">Recent on-chain activity</p>
+          </div>
+        </div>
+
+        <div className="border-border/40 bg-muted/5 overflow-hidden rounded-2xl border">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-muted/10">
@@ -166,8 +166,8 @@ export function TransactionPage() {
               </a>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { ThemeProvider, Toaster, TooltipProvider } from "@polymeer/ui"
+import { ThemeProvider, Toaster, TooltipProvider, useIsMobile } from "@polymeer/ui"
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 import { useEffect, useState } from "react"
@@ -50,10 +50,11 @@ function RootComponent() {
 }
 
 const RootDocument = ({ children }: { children: React.ReactNode }) => {
+  const isMobile = useIsMobile()
   return (
     <>
       {children}
-      <TanStackRouterDevtools position="bottom-right" />
+      <TanStackRouterDevtools position={isMobile ? "bottom-right" : "top-left"} />
     </>
   )
 }

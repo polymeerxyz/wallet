@@ -67,7 +67,7 @@ export default defineConfig(({ mode }) => {
       },
       sitemap({
         hostname: "https://app.polymeer.xyz",
-        dynamicRoutes: ["/", "/connect", "/dao", "/transactions", "/send"],
+        dynamicRoutes: ["/", "/connect", "/dao", "/fiber", "/transactions", "/send"],
       }),
       VitePWA({
         strategies: "injectManifest",
@@ -120,9 +120,15 @@ export default defineConfig(({ mode }) => {
               icons: [{ src: "pwa-192x192.png", sizes: "192x192" }],
             },
             {
-              name: "Send",
-              short_name: "Send",
-              url: "/send",
+              name: "DAO",
+              short_name: "DAO",
+              url: "/dao",
+              icons: [{ src: "pwa-192x192.png", sizes: "192x192" }],
+            },
+            {
+              name: "Fiber",
+              short_name: "Fiber",
+              url: "/fiber",
               icons: [{ src: "pwa-192x192.png", sizes: "192x192" }],
             },
           ],

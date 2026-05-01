@@ -8,7 +8,7 @@ import { useFiberWorker } from "./use-fiber-worker"
 
 export type ExtendedInvoice = GetInvoiceResult | InvoiceResult
 
-export function useInvoices() {
+export function useInvoices(enabled = true) {
   const worker = useFiberWorker()
   const network = useConfigStore((s) => s.network)
   const clientMode = useConfigStore((s) => s.clientMode)
@@ -37,7 +37,7 @@ export function useInvoices() {
       return results
     },
     refetchInterval: 10000,
-    enabled: invoices.length > 0,
+    enabled: enabled && invoices.length > 0,
     initialData: invoices as ExtendedInvoice[],
   })
 

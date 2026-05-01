@@ -1,7 +1,6 @@
 import { Button, cn, DropdownMenuItem, useIsMobile } from "@polymeer/ui"
 import { useQueryClient } from "@tanstack/react-query"
 
-import { useCkbWorker } from "@/hooks/use-ckb-worker"
 import { useConfigStore } from "@/stores/config.store"
 
 const modes: { value: "light" | "full"; label: string; description: string }[] = [

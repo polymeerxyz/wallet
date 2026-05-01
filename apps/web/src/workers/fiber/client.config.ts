@@ -1,29 +1,53 @@
+import type { Script } from "@nervosnetwork/fiber-js"
 import { stringifyYAML } from "confbox"
 
-function stripTypeidDeps(scripts: any[]): any[] {
+type DepType = "code" | "dep_group"
+
+type TypeIdCellDep = {
+  type_id: {
+    code_hash: string
+    hash_type: Script["hash_type"]
+    args: string
+  }
+}
+
+type ExplicitCellDep = {
+  cell_dep: {
+    out_point: {
+      tx_hash: string
+      index: string
+    }
+    dep_type: DepType
+  }
+}
+
+type CellDepEntry = TypeIdCellDep | ExplicitCellDep
+
+type FiberScriptConfig = {
+  name: string
+  script: Script
+  cell_deps: CellDepEntry[]
+}
+
+type UdtConfig = FiberScriptConfig & {
+  auto_accept_amount?: number
+}
+
+function stripTypeidDeps(scripts: FiberScriptConfig[]): FiberScriptConfig[] {
   return scripts
     .map((s) => ({
       ...s,
-      cell_deps: s.cell_deps.filter((d: any) => !d.type_id),
+      cell_deps: s.cell_deps.filter((d): d is ExplicitCellDep => !("type_id" in d)),
     }))
     .filter((s) => s.cell_deps.length > 0)
 }
 
 const createConfig = (
-  network: string,
+  network: "mainnet" | "testnet",
   bootnodes: string[],
-  scripts: any[],
-  udtWhitelist: any[],
-  isLightClient = false
+  scripts: FiberScriptConfig[],
+  udtWhitelist: UdtConfig[]
 ) => {
-  let rpcUrl: string
-  if (isLightClient) {
-    scripts = stripTypeidDeps(scripts)
-    udtWhitelist = stripTypeidDeps(udtWhitelist)
-    rpcUrl = `${self.location.origin}/ckb-rpc-proxy`
-  } else {
-    rpcUrl = network === "mainnet" ? "https://mainnet.ckb.dev/" : "https://testnet.ckb.dev/"
-  }
   const config = {
     fiber: {
       listening_addr: "/ip4/0.0.0.0/tcp/8228",
@@ -37,7 +61,7 @@ const createConfig = (
       listening_addr: "127.0.0.1:8227",
     },
     ckb: {
-      rpc_url: rpcUrl,
+      rpc_url: `https://${network}.ckbapp.dev/`,
       udt_whitelist: udtWhitelist,
     },
     services: ["fiber", "rpc", "ckb"],
@@ -46,7 +70,7 @@ const createConfig = (
   return stringifyYAML(config)
 }
 
-export const getFiberNodeConfig = (network: "mainnet" | "testnet", isLightClient = false) => {
+export const getFiberNodeConfig = (network: "mainnet" | "testnet") => {
   if (network === "mainnet") {
     return createConfig(
       "mainnet",
@@ -127,15 +151,14 @@ export const getFiberNodeConfig = (network: "mainnet" | "testnet", isLightClient
           ],
           auto_accept_amount: 10000000,
         },
-      ],
-      isLightClient
+      ]
     )
   } else {
     return createConfig(
       "testnet",
       [
-        "/dns4/fiber.nervosscan.com/tcp/443/wss/p2p/QmYGNtMg2MkoXdDgbVd4YfDNh3mATJ2K8EUBw4FCHTrHT4",
-        "/dns4/fiber.funfungho.xyz/tcp/443/wss/p2p/QmNY3pSMng8Jm4DYpNvsW9j4fJKTFQVmyuZWQ74XfubZYQ",
+        // "/dns4/fiber.nervosscan.com/tcp/443/wss/p2p/QmYGNtMg2MkoXdDgbVd4YfDNh3mATJ2K8EUBw4FCHTrHT4",
+        // "/dns4/fiber.funfungho.xyz/tcp/443/wss/p2p/QmNY3pSMng8Jm4DYpNvsW9j4fJKTFQVmyuZWQ74XfubZYQ",
         "/dns4/bottle.fiber.channel/tcp/443/wss/p2p/QmXen3eUHhywmutEzydCsW4hXBoeVmdET2FJvMX69XJ1Eo",
         "/dns4/bracer.fiber.channel/tcp/443/wss/p2p/QmbKyzq9qUmymW2Gi8Zq7kKVpPiNA1XUJ6uMvsUC4F3p89",
         "/dns4/thrall.fiber.channel/tcp/443/wss/p2p/Qmes1EBD4yNo9Ywkfe6eRw9tG1nVNGLDmMud1xJMsoYFKy",
@@ -214,8 +237,7 @@ export const getFiberNodeConfig = (network: "mainnet" | "testnet", isLightClient
           ],
           auto_accept_amount: 1000000000,
         },
-      ],
-      isLightClient
+      ]
     )
   }
 }

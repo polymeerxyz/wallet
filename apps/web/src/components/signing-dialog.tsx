@@ -97,15 +97,6 @@ export function SigningDialog() {
       }
       if (!ledger) throw new Error("Ledger not connected. Check device and app.")
       const targetIndex = builtTx.targetWitnessIndex
-      console.debug("[SigningDialog] handleSign:", {
-        targetIndex,
-        inputCount: builtTx.tx.inputs?.length,
-        contextCount: builtTx.contexts.length,
-        witnessCount: builtTx.witnesses.length,
-        signPath: builtTx.signPaths[0],
-        configType: config.type,
-        hasSighash: !!builtTx.sighash,
-      })
 
       let signatureRaw: string
       // Fiber funding TXs are structurally rejected by the Ledger CKB app's
@@ -149,8 +140,6 @@ export function SigningDialog() {
 
       const tx = Transaction.from(builtTx.tx)
 
-      // Find the precise index to write the signature into. Use provided targetWitnessIndex or default to 0.
-
       const signature = (signatureRaw.startsWith("0x") ? signatureRaw : `0x${signatureRaw}`) as Hex
       const witnessArgs = WitnessArgs.fromBytes(tx.witnesses[targetIndex] || "0x")
       witnessArgs.lock = signature
@@ -184,7 +173,13 @@ export function SigningDialog() {
 
   const handleDone = useCallback(() => {
     close()
-    navigate({ to: config?.type === "fiber_open_channel" ? "/fiber" : "/" })
+    if (config?.type.startsWith("fiber")) {
+      navigate({ to: "/fiber" })
+    } else if (config?.type.startsWith("dao")) {
+      navigate({ to: "/dao" })
+    } else {
+      navigate({ to: "/" })
+    }
   }, [close, config, navigate])
 
   useEffect(() => {

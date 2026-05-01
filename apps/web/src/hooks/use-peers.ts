@@ -5,7 +5,7 @@ import { useFiberPeerStore } from "@/stores/fiber-peer.store"
 
 import { useFiberWorker } from "./use-fiber-worker"
 
-export function usePeers() {
+export function usePeers(enabled = true) {
   const worker = useFiberWorker()
   const network = useConfigStore((s) => s.network)
   const clientMode = useConfigStore((s) => s.clientMode)
@@ -24,6 +24,7 @@ export function usePeers() {
       }
       return res
     },
+    enabled,
     refetchInterval: 10000,
   })
 

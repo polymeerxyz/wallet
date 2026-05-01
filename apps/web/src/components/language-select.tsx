@@ -22,10 +22,7 @@ export function LanguageSelect() {
             key={key}
             variant={lang === key ? "default" : "outline"}
             size="sm"
-            className={cn(
-              "h-8 rounded-xl px-3 text-xs font-bold transition-all",
-              lang === key ? "shadow-primary/20 shadow-md" : "bg-muted/30"
-            )}
+            className={cn("h-8 rounded-xl px-3 text-xs font-bold transition-all", lang !== key && "bg-muted/30")}
             onClick={() => setLang(key)}
           >
             {label}

@@ -12,7 +12,7 @@ fiber:
   announced_addrs:
     # If you want to announce your fiber node public address to the network, you need to add the address here.
     # Please change the ip to your public ip accordingly, and make sure the port is open and reachable from the internet.
-    - "/dns4/mainnet.polymeer.xyz/tcp/443/wss"
+    - "/dns4/mainnet.polymeer.xyz/tcp/8228"
   chain: mainnet
 
   ## SOCKS5 proxy settings

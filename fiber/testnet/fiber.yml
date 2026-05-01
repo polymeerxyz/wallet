@@ -10,7 +10,9 @@ fiber:
     - "/ip4/16.163.7.105/tcp/8228/p2p/QmdyQWjPtbK4NWWsvy8s69NGJaQULwgeQDT5ZpNDrTNaeV"
   announce_listening_addr: true
   announced_addrs:
-    - "/dns4/testnet.polymeer.xyz/tcp/443/wss"
+    # If you want to announce your fiber node public address to the network, you need to add the address here.
+    # Please change the ip to your public ip accordingly, and make sure the port is open and reachable from the internet.
+    - "/dns4/testnet.polymeer.xyz/tcp/8228"
   chain: testnet
 
   ## SOCKS5 proxy settings
@@ -81,6 +83,7 @@ rpc:
   listening_addr: "127.0.0.1:8227"
 
 ckb:
+  # Please use a trusted CKB RPC node, the node should be able to provide the correct data and should be stable.
   rpc_url: "https://testnet.ckbapp.dev/"
   udt_whitelist:
     - name: RUSD

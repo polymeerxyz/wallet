@@ -1,6 +1,13 @@
 import type { CellLike, ClientBlockHeaderLike, EpochLike } from "@ckb-ccc/core"
 import { hexFrom } from "@ckb-ccc/core"
-import { ArrowDown01Icon, ArrowUp01Icon, Coins01Icon, SafeIcon } from "@hugeicons/core-free-icons"
+import {
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  Coins01Icon,
+  SafeIcon,
+  SortingAZ01Icon,
+  SortingZA01Icon,
+} from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 import { Button, cn, Input, Skeleton, toast } from "@polymeer/ui"
 import { useQueryClient } from "@tanstack/react-query"
@@ -113,15 +120,15 @@ export function DaoPage() {
   const { tip } = useTip()
   const openSigning = useSigningStore((s) => s.open)
   const isReadOnly = useWalletStore((s) => s.isReadOnly)
+  const [depositAmount, setDepositAmount] = useState("")
+  const [feeRate, setFeeRate] = useState("1000")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
 
   useEffect(() => {
     queryClient.invalidateQueries({ queryKey: ["dao-cells"] })
     queryClient.invalidateQueries({ queryKey: ["dao-apy"] })
     queryClient.invalidateQueries({ queryKey: ["ckb-tip"] })
   }, [queryClient])
-
-  const [depositAmount, setDepositAmount] = useState("")
-  const [feeRate, setFeeRate] = useState("1000")
 
   const handleDeposit = () => {
     if (!depositAmount) return
@@ -148,6 +155,12 @@ export function DaoPage() {
       },
     })
   }
+
+  const sortedCells = [...cells].sort((a, b) => {
+    const aNum = BigInt(a.info?.depositHeader?.number?.toString() ?? "0")
+    const bNum = BigInt(b.info?.depositHeader?.number?.toString() ?? "0")
+    return sortOrder === "desc" ? (bNum > aNum ? 1 : bNum < aNum ? -1 : 0) : aNum > bNum ? 1 : aNum < bNum ? -1 : 0
+  })
 
   const totalStaked = cells.reduce((acc, c) => acc + BigInt(c.cell.cellOutput.capacity?.toString() || "0"), 0n)
   const totalProfit = cells.reduce((acc, c) => acc + BigInt(c.info?.profit || "0"), 0n)
@@ -268,7 +281,16 @@ export function DaoPage() {
               <p className="text-muted-foreground/50 mt-0.5 text-[10px]">Active staking positions</p>
             </div>
           </div>
-          <span className="text-muted-foreground/40 text-[10px] font-bold uppercase">{cells.length} Active</span>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground/40 text-[10px] font-bold uppercase">{cells.length} Active</span>
+            <button
+              onClick={() => setSortOrder((o) => (o === "desc" ? "asc" : "desc"))}
+              className="text-muted-foreground/40 hover:text-muted-foreground flex items-center gap-1 transition-colors"
+              title={sortOrder === "desc" ? "Newest first" : "Oldest first"}
+            >
+              <HugeiconsIcon icon={sortOrder === "desc" ? SortingZA01Icon : SortingAZ01Icon} size={14} />
+            </button>
+          </div>
         </div>
 
         <div className="border-border/40 bg-muted/5 divide-border/30 divide-y overflow-hidden rounded-2xl border">
@@ -285,7 +307,7 @@ export function DaoPage() {
               </p>
             </div>
           ) : (
-            cells.map((item, idx) => (
+            sortedCells.map((item, idx) => (
               <div
                 key={idx}
                 className="hover:bg-muted/10 group grid grid-cols-1 gap-4 p-4 transition-colors md:grid-cols-[1fr_160px_220px] md:items-center"

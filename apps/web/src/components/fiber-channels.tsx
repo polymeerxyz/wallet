@@ -163,7 +163,7 @@ export function FiberChannels() {
 
   const handleCloseChannel = async (channelId: string, stateName?: string) => {
     try {
-      if (stateName === "NegotiatingFunding") {
+      if (stateName === "CollaboratingFundingTx" || stateName === "NegotiatingFunding") {
         await fiberWorker.abandonChannel({ channel_id: channelId as Hex })
       } else {
         await fiberWorker.closeChannel({ channel_id: channelId as Hex, force: false })
@@ -172,7 +172,17 @@ export function FiberChannels() {
       await refreshChannels()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
-      toast.error("Failed to close channel: " + msg)
+      const isPeerSignatureError =
+        msg.includes("Musig2VerifyError") || msg.includes("BadSignature") || msg.includes("ReestablishChannel")
+      if (isPeerSignatureError) {
+        toast.error(
+          "Cooperative close failed: peer channel state is incompatible (Musig2 signature mismatch). Use Force Close to recover your funds.",
+          { duration: 8000 }
+        )
+        setConfirmForceCloseId(channelId)
+      } else {
+        toast.error("Failed to close channel: " + msg)
+      }
     }
   }
 

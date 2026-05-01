@@ -15,29 +15,11 @@ import {
   scanUTXOAddresses,
 } from "@polymeer/lib"
 
-import { setupRpcProxyChannel } from "./rpc-proxy"
 import type { DaoCellInfo, WorkerMethod, WorkerRequest, WorkerResponse, WorkerTypeMap } from "./types"
 import { toSerializable } from "./utils"
 
 let currentNetwork: "mainnet" | "testnet"
 let currentClientMode: "light" | "full"
-let teardownRpcProxy: (() => void) | null = null
-
-function startRpcProxy() {
-  if (teardownRpcProxy) return
-  teardownRpcProxy = setupRpcProxyChannel(
-    () => getActiveClient(currentNetwork),
-    async (scripts) => {
-      const { ensureScripts } = await import("./client")
-      await ensureScripts(scripts)
-    }
-  )
-}
-
-function stopRpcProxy() {
-  teardownRpcProxy?.()
-  teardownRpcProxy = null
-}
 
 self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
   const { id, method } = e.data
@@ -74,7 +56,6 @@ async function handleMessage(request: WorkerRequest): Promise<WorkerTypeMap[Work
     console.log(`[Worker] Updating config: mode=${currentClientMode}, network=${currentNetwork}`)
 
     if (currentClientMode === "full") {
-      stopRpcProxy()
       if (prevMode === "light" || prevNetwork !== currentNetwork) {
         const { stopLightClient } = await import("./client")
         await stopLightClient()
@@ -82,7 +63,6 @@ async function handleMessage(request: WorkerRequest): Promise<WorkerTypeMap[Work
     } else {
       const { startLightClient } = await import("./client")
       await startLightClient(currentNetwork)
-      startRpcProxy()
     }
     return {}
   }

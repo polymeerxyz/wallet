@@ -1,4 +1,4 @@
-import { GithubIcon, TwitterIcon } from "@hugeicons/core-free-icons"
+import { GithubIcon, NewTwitterIcon, TelegramIcon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
 
 const COMMIT_HASH = import.meta.env.VITE_COMMIT_HASH as string | undefined
@@ -28,7 +28,16 @@ export function Footer() {
             className="text-muted-foreground/30 hover:text-primary transition-colors"
             title="Twitter"
           >
-            <HugeiconsIcon icon={TwitterIcon} size={20} />
+            <HugeiconsIcon icon={NewTwitterIcon} size={20} />
+          </a>
+          <a
+            href="https://t.me/polymeer_xyz"
+            target="_blank"
+            rel="noreferrer"
+            className="text-muted-foreground/30 hover:text-primary transition-colors"
+            title="Telegram"
+          >
+            <HugeiconsIcon icon={TelegramIcon} size={20} />
           </a>
         </div>
         <div className="flex flex-col items-center gap-1">

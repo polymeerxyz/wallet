@@ -48,64 +48,66 @@ export function SettingsMenu() {
             <DrawerTitle>Settings</DrawerTitle>
             <DrawerDescription>Configure your wallet preferences</DrawerDescription>
           </DrawerHeader>
-          <div className="flex flex-col gap-6 p-6 pb-12">
-            <div className="flex flex-col gap-3">
-              <span className="text-muted-foreground text-xs font-bold tracking-wider uppercase">Infrastructure</span>
-              <div className="grid grid-cols-1 gap-2">
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium">Network</span>
-                  <div className="flex flex-wrap gap-2">
-                    <NetworkSwitch />
+          <div className="overflow-y-auto">
+            <div className="flex flex-col gap-6 p-6 pb-12">
+              <div className="flex flex-col gap-3">
+                <span className="text-muted-foreground text-xs font-bold tracking-wider uppercase">Infrastructure</span>
+                <div className="grid grid-cols-1 gap-2">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-sm font-medium">Network</span>
+                    <div className="flex flex-wrap gap-2">
+                      <NetworkSwitch />
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium">Node Mode</span>
-                  <div className="flex flex-wrap gap-2">
-                    <NodeModeSwitch />
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-sm font-medium">Node Mode</span>
+                    <div className="flex flex-wrap gap-2">
+                      <NodeModeSwitch />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-col gap-3">
-              <span className="text-muted-foreground text-xs font-bold tracking-wider uppercase">Preferences</span>
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium">Language</span>
-                  <div className="flex flex-wrap gap-2">
-                    <LanguageSelect />
+              <div className="flex flex-col gap-3">
+                <span className="text-muted-foreground text-xs font-bold tracking-wider uppercase">Preferences</span>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-sm font-medium">Language</span>
+                    <div className="flex flex-wrap gap-2">
+                      <LanguageSelect />
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium">Theme</span>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={theme === "light" ? "default" : "outline"}
-                      size="sm"
-                      className="flex-1 rounded-xl"
-                      onClick={() => setTheme("light")}
-                    >
-                      <HugeiconsIcon icon={Sun01Icon} size={16} className="mr-2" />
-                      Light
-                    </Button>
-                    <Button
-                      variant={theme === "dark" ? "default" : "outline"}
-                      size="sm"
-                      className="flex-1 rounded-xl"
-                      onClick={() => setTheme("dark")}
-                    >
-                      <HugeiconsIcon icon={Moon01Icon} size={16} className="mr-2" />
-                      Dark
-                    </Button>
-                    <Button
-                      variant={theme === "system" ? "default" : "outline"}
-                      size="sm"
-                      className="flex-1 rounded-xl"
-                      onClick={() => setTheme("system")}
-                    >
-                      <HugeiconsIcon icon={ComputerIcon} size={16} className="mr-2" />
-                      System
-                    </Button>
+                  <div className="flex flex-col gap-1.5">
+                    <span className="text-sm font-medium">Theme</span>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant={theme === "light" ? "default" : "outline"}
+                        size="sm"
+                        className="h-8 gap-1.5 rounded-xl px-3 text-xs font-bold transition-all"
+                        onClick={() => setTheme("light")}
+                      >
+                        <HugeiconsIcon icon={Sun01Icon} size={13} />
+                        Light
+                      </Button>
+                      <Button
+                        variant={theme === "dark" ? "default" : "outline"}
+                        size="sm"
+                        className="h-8 gap-1.5 rounded-xl px-3 text-xs font-bold transition-all"
+                        onClick={() => setTheme("dark")}
+                      >
+                        <HugeiconsIcon icon={Moon01Icon} size={13} />
+                        Dark
+                      </Button>
+                      <Button
+                        variant={theme === "system" ? "default" : "outline"}
+                        size="sm"
+                        className="h-8 gap-1.5 rounded-xl px-3 text-xs font-bold transition-all"
+                        onClick={() => setTheme("system")}
+                      >
+                        <HugeiconsIcon icon={ComputerIcon} size={13} />
+                        System
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

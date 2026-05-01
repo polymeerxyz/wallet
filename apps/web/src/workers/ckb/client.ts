@@ -8,7 +8,7 @@ import { getLightNodeConfig } from "./client.config"
 import type { ScriptInfoLike } from "./types"
 
 let lightClientWasm: LightClient | null = null
-let startPromise: Promise<void> | null = null
+let startPromise: Promise<ClientLight> | null = null
 let currentNetwork: "mainnet" | "testnet" | null = null
 
 export async function startLightClient(network: "mainnet" | "testnet"): Promise<ClientLight> {
@@ -26,11 +26,12 @@ export async function startLightClient(network: "mainnet" | "testnet"): Promise<
     currentNetwork = network
 
     const secretKey = "0x0000000000000000000000000000000000000000000000000000000000000001"
-    startPromise = lightClientWasm.start(networkSetting, secretKey, "error", "ws")
+    startPromise = lightClientWasm
+      .start(networkSetting, secretKey, "error", "ws")
+      .then(() => new ClientLight(network, lightClientWasm!))
   }
 
-  await startPromise
-  return new ClientLight(network, lightClientWasm!)
+  return startPromise
 }
 
 export async function stopLightClient(): Promise<void> {
@@ -54,13 +55,10 @@ export async function ensureScripts(scripts: Array<ScriptLike | ScriptInfoLike>)
 
   if (newScripts.length === 0) return
 
-  const tip = await lightClientWasm.getTipHeader()
-  const startBlock = tip.number > numFrom(100) ? tip.number - numFrom(100) : numFrom(0)
-
   const newStatuses = newScripts.map((script) => ({
     script,
     scriptType: "lock" as const,
-    blockNumber: startBlock,
+    blockNumber: numFrom(0),
   }))
 
   await lightClientWasm.setScripts(newStatuses, LightClientSetScriptsCommand.Partial)

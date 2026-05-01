@@ -3,7 +3,6 @@ import type { FiberClient } from "@polymeer/lib"
 import type { WorkerMethod, WorkerRequest, WorkerResponse, WorkerTypeMap } from "./types"
 
 let currentNetwork: "mainnet" | "testnet"
-let currentClientMode: "light" | "full"
 let currentFiberSecretKeyHex: string | null = null
 
 self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
@@ -31,23 +30,21 @@ async function getFiberClient(): Promise<FiberClient> {
   }
 
   const { startFiberClient } = await import("./client")
-  return startFiberClient(currentNetwork, currentFiberSecretKeyHex, currentClientMode)
+  return startFiberClient(currentNetwork, currentFiberSecretKeyHex)
 }
 
 async function handleMessage(request: WorkerRequest): Promise<WorkerTypeMap[WorkerMethod]["result"]> {
   const { method, payload } = request
 
   if (method === "UPDATE_CONFIG") {
-    const prevMode = currentClientMode
     const prevNetwork = currentNetwork
 
     currentNetwork = payload.network
-    currentClientMode = payload.clientMode
     currentFiberSecretKeyHex = payload.fiberSecretKeyHex
 
-    console.log(`[Fiber Worker] Updating config: mode=${currentClientMode}, network=${currentNetwork}`)
+    console.log(`[Fiber Worker] Updating config: network=${currentNetwork}`)
 
-    if (prevMode !== currentClientMode || prevNetwork !== currentNetwork) {
+    if (prevNetwork !== currentNetwork) {
       const { stopFiberClient } = await import("./client")
       await stopFiberClient()
     }

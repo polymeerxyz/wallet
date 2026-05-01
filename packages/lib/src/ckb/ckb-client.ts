@@ -1,4 +1,6 @@
 import type {
+  CellDep,
+  CellDepInfoLike,
   ClientBlock,
   ClientBlockHeader,
   ClientFindCellsResponse,
@@ -6,7 +8,6 @@ import type {
   ClientFindTransactionsResponse,
   ClientIndexerSearchKeyLike,
   ClientIndexerSearchKeyTransactionLike,
-  ClientTransactionResponse,
   Hex,
   HexLike,
   KnownScript,
@@ -17,7 +18,17 @@ import type {
   ScriptLike,
   TransactionLike,
 } from "@ckb-ccc/core"
-import { Cell, ClientJsonRpc, hexFrom, numFrom, OutPoint, RequestorJsonRpc, ScriptInfo } from "@ckb-ccc/core"
+import {
+  Cell,
+  ClientJsonRpc,
+  ClientPublicMainnet,
+  ClientPublicTestnet,
+  ClientTransactionResponse,
+  hexFrom,
+  numFrom,
+  RequestorJsonRpc,
+  ScriptInfo,
+} from "@ckb-ccc/core"
 import { MAINNET_SCRIPTS, TESTNET_SCRIPTS } from "@ckb-ccc/core/advanced"
 import type {
   FetchResponse,
@@ -37,6 +48,7 @@ import type {
 export class ClientLight extends ClientJsonRpc {
   private clientNetwork: "mainnet" | "testnet"
   private lc: LightClient
+  private _fallback: ClientPublicMainnet | ClientPublicTestnet | null = null
 
   constructor(network: "mainnet" | "testnet", lightClient: LightClient) {
     super("wasm://light-client", {
@@ -46,11 +58,18 @@ export class ClientLight extends ClientJsonRpc {
     this.lc = lightClient
   }
 
+  get fallback(): ClientPublicMainnet | ClientPublicTestnet {
+    if (!this._fallback) {
+      this._fallback = this.clientNetwork === "mainnet" ? new ClientPublicMainnet() : new ClientPublicTestnet()
+    }
+    return this._fallback
+  }
+
   get addressPrefix(): string {
     return this.clientNetwork === "mainnet" ? "ckb" : "ckt"
   }
 
-  async getKnownScript(script: KnownScript): Promise<ScriptInfo> {
+  override getKnownScript = async (script: KnownScript): Promise<ScriptInfo> => {
     const scripts = this.clientNetwork === "mainnet" ? MAINNET_SCRIPTS : TESTNET_SCRIPTS
     const found = scripts[script]
     if (!found) {
@@ -59,80 +78,77 @@ export class ClientLight extends ClientJsonRpc {
     return ScriptInfo.from(found)
   }
 
-  getTip = async (): Promise<Num> => {
+  override getFeeRateStatistics = (blockRange?: NumLike): Promise<{ mean: Num; median: Num }> => {
+    return this.fallback.getFeeRateStatistics(blockRange)
+  }
+
+  override getTip = async (): Promise<Num> => {
     const header = await this.lc.getTipHeader()
     return header.number
   }
 
-  getTipHeader = async (): Promise<ClientBlockHeader> => {
+  override getTipHeader = (): Promise<ClientBlockHeader> => {
     return this.lc.getTipHeader()
   }
 
-  getHeaderByHashNoCache = async (
+  override getBlockByNumberNoCache = (
+    blockNumber: NumLike,
+    verbosity?: number | null,
+    withCycles?: boolean | null
+  ): Promise<ClientBlock | undefined> => {
+    return this.fallback.getBlockByNumberNoCache(blockNumber, verbosity, withCycles)
+  }
+
+  override getBlockByHashNoCache = (
+    blockHash: HexLike,
+    verbosity?: number | null,
+    withCycles?: boolean | null
+  ): Promise<ClientBlock | undefined> => {
+    return this.fallback.getBlockByHashNoCache(blockHash, verbosity, withCycles)
+  }
+
+  override getHeaderByNumberNoCache = async (
+    blockNumber: NumLike,
+    verbosity?: number | null
+  ): Promise<ClientBlockHeader | undefined> => {
+    return this.fallback.getHeaderByNumberNoCache(blockNumber, verbosity)
+  }
+
+  override getHeaderByHashNoCache = async (
     blockHash: HexLike,
     _verbosity?: number | null
   ): Promise<ClientBlockHeader | undefined> => {
-    return this.lc.getHeader(hexFrom(blockHash))
+    const cached = await this.lc.getHeader(hexFrom(blockHash))
+    if (cached) return cached
+    return this.fallback.getHeaderByHashNoCache(blockHash)
   }
 
-  getHeaderByNumberNoCache = async (
-    _blockNumber: NumLike,
-    _verbosity?: number | null
-  ): Promise<ClientBlockHeader | undefined> => {
-    return undefined
-  }
-
-  getBlockByNumberNoCache = (
-    _blockNumber: NumLike,
-    _verbosity?: number | null,
-    _withCycles?: boolean | null
-  ): Promise<ClientBlock | undefined> => {
-    return Promise.resolve(undefined)
-  }
-
-  getBlockByHashNoCache = (
-    _blockHash: HexLike,
-    _verbosity?: number | null,
-    _withCycles?: boolean | null
-  ): Promise<ClientBlock | undefined> => {
-    return Promise.resolve(undefined)
-  }
-
-  getTransactionNoCache = async (txHash: HexLike): Promise<ClientTransactionResponse | undefined> => {
-    return this.lc.getTransaction(hexFrom(txHash))
-  }
-
-  sendTransactionNoCache = async (transaction: TransactionLike, _validator?: OutputsValidator | null): Promise<Hex> => {
-    return hexFrom(await this.lc.sendTransaction(transaction))
-  }
-
-  sendTransactionDry = (_transaction: TransactionLike, _validator?: OutputsValidator): Promise<Num> => {
-    return Promise.resolve(numFrom(0))
-  }
-
-  estimateCycles = async (transaction: TransactionLike): Promise<Num> => {
+  override estimateCycles = (transaction: TransactionLike): Promise<Num> => {
     return this.lc.estimateCycles(transaction)
   }
 
-  getFeeRateStatistics = async (_blockRange?: NumLike): Promise<{ mean: Num; median: Num }> => {
-    return { mean: numFrom(1000), median: numFrom(1000) }
+  override sendTransactionDry = (transaction: TransactionLike, validator?: OutputsValidator): Promise<Num> => {
+    return this.fallback.sendTransactionDry(transaction, validator)
   }
 
-  async getCellLiveNoCache(outPointLike: OutPointLike): Promise<Cell | undefined> {
-    const outPoint = OutPoint.from(outPointLike)
-    const txRes = await this.lc.getTransaction(outPoint.txHash)
-    if (!txRes) return undefined
-
-    const index = Number(numFrom(outPoint.index))
-    const output = txRes.transaction.outputs[index]
-    const outputData = txRes.transaction.outputsData[index]
-
-    if (!output) return undefined
-
-    return Cell.from({ cellOutput: output, outputData, outPoint })
+  override sendTransactionNoCache = (
+    transaction: TransactionLike,
+    _validator?: OutputsValidator | null
+  ): Promise<Hex> => {
+    return this.lc.sendTransaction(transaction)
   }
 
-  findCellsPagedNoCache = async (
+  override getTransactionNoCache = async (txHash: HexLike): Promise<ClientTransactionResponse | undefined> => {
+    const res = await this.lc.getTransaction(hexFrom(txHash))
+    if (!res) return undefined
+    return ClientTransactionResponse.from(res)
+  }
+
+  override getCellLiveNoCache = (outPointLike: OutPointLike): Promise<Cell | undefined> => {
+    return this.fallback.getCellLiveNoCache(outPointLike)
+  }
+
+  override findCellsPagedNoCache = async (
     key: ClientIndexerSearchKeyLike,
     order?: "asc" | "desc",
     limit?: NumLike,
@@ -151,19 +167,7 @@ export class ClientLight extends ClientJsonRpc {
     }
   }
 
-  getCellsCapacity = async (key: ClientIndexerSearchKeyLike): Promise<Num> => {
-    return this.lc.getCellsCapacity(key)
-  }
-
-  override async getBalanceSingle(lock: ScriptLike): Promise<Num> {
-    return this.getCellsCapacity({
-      script: lock,
-      scriptType: "lock",
-      scriptSearchMode: "exact",
-    })
-  }
-
-  findTransactionsPaged = (async (
+  override findTransactionsPaged = (async (
     key: ClientIndexerSearchKeyTransactionLike,
     order?: "asc" | "desc",
     limit?: NumLike,
@@ -202,25 +206,41 @@ export class ClientLight extends ClientJsonRpc {
     } as ClientFindTransactionsGroupedResponse
   }) as ClientJsonRpc["findTransactionsPaged"]
 
-  async fetchHeader(blockHash: HexLike): Promise<ClientBlockHeader | undefined> {
+  override getCellsCapacity = (key: ClientIndexerSearchKeyLike): Promise<Num> => {
+    return this.lc.getCellsCapacity(key)
+  }
+
+  override getCellDeps = (...cellDepInfoLikes: CellDepInfoLike[][]): Promise<CellDep[]> => {
+    return this.fallback.getCellDeps(...cellDepInfoLikes)
+  }
+
+  override getBalanceSingle = (lock: ScriptLike): Promise<Num> => {
+    return this.getCellsCapacity({
+      script: lock,
+      scriptType: "lock",
+      scriptSearchMode: "exact",
+    })
+  }
+
+  fetchHeader = async (blockHash: HexLike): Promise<ClientBlockHeader | undefined> => {
     const res: FetchResponse<ClientBlockHeader> = await this.lc.fetchHeader(hexFrom(blockHash))
     return res.status === "fetched" ? res.data : undefined
   }
 
-  async fetchTransaction(txHash: HexLike): Promise<ClientTransactionResponse | undefined> {
+  fetchTransaction = async (txHash: HexLike): Promise<ClientTransactionResponse | undefined> => {
     const res: FetchResponse<ClientTransactionResponse> = await this.lc.fetchTransaction(hexFrom(txHash))
     return res.status === "fetched" ? res.data : undefined
   }
 
-  async setScripts(scripts: ScriptStatus[], command?: LightClientSetScriptsCommand): Promise<void> {
+  setScripts = (scripts: ScriptStatus[], command?: LightClientSetScriptsCommand): Promise<void> => {
     return this.lc.setScripts(scripts, command)
   }
 
-  async getScripts(): Promise<ScriptStatus[]> {
+  getScripts = (): Promise<ScriptStatus[]> => {
     return this.lc.getScripts()
   }
 
-  async getSyncProgress(): Promise<number> {
+  getSyncProgress = async (): Promise<number> => {
     const header = await this.getTipHeader()
     const scripts = await this.getScripts()
     if (scripts.length === 0 || header.number === 0n) {

@@ -1,17 +1,6 @@
-import {
-  Invoice01Icon,
-  Link02Icon,
-  UserMultiple02Icon,
-} from "@hugeicons/core-free-icons"
+import { Invoice01Icon, Link02Icon, UserMultiple02Icon } from "@hugeicons/core-free-icons"
 import { HugeiconsIcon } from "@hugeicons/react"
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-  ScrollArea,
-} from "@polymeer/ui"
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@polymeer/ui"
 import { Link, Navigate } from "@tanstack/react-router"
 import { useEffect, useState } from "react"
 
@@ -22,10 +11,10 @@ import { FiberPeers } from "@/components/fiber-peers"
 import { FiberSendPayment } from "@/components/fiber-send-payment"
 import { useChannels } from "@/hooks/use-channels"
 import { useFiberWorker } from "@/hooks/use-fiber-worker"
-import { useInvoices } from "@/hooks/use-invoices"
 import { usePeers } from "@/hooks/use-peers"
 import { useConfigStore } from "@/stores/config.store"
 import { useFiberChannelStore } from "@/stores/fiber-channel.store"
+
 const SETTLING_STATES = new Set(["shuttingdown", "shutting_down", "closed"])
 
 function isSettlingChannel(stateName?: string): boolean {
@@ -40,15 +29,12 @@ function isSettlingChannel(stateName?: string): boolean {
 export function FiberPage() {
   const network = useConfigStore((s) => s.network)
   const clientMode = useConfigStore((s) => s.clientMode)
-  const fiberWorker = useFiberWorker()
-
-  const { channels } = useChannels()
-  const { peers } = usePeers()
-  useInvoices()
-
   const forceCloseChannels = useFiberChannelStore((s) => s.forceCloseChannels)
-
+  const fiberWorker = useFiberWorker()
   const [isReady, setIsReady] = useState(false)
+
+  const { channels } = useChannels(isReady)
+  const { peers } = usePeers(isReady)
 
   const activeChannels = channels.filter((ch) => !isSettlingChannel(ch.state?.state_name))
   const pendingSettlement = forceCloseChannels.filter((r) => r.network === network)
@@ -101,7 +87,7 @@ export function FiberPage() {
             <DrawerHeader>
               <DrawerTitle>Fiber Peers</DrawerTitle>
             </DrawerHeader>
-            <ScrollArea className="max-h-[70vh] px-4 pb-8">{isReady && <FiberPeers />}</ScrollArea>
+            <div className="max-h-[70vh] overflow-y-auto px-4 pb-6">{isReady && <FiberPeers />}</div>
           </DrawerContent>
         </Drawer>
 
@@ -131,7 +117,7 @@ export function FiberPage() {
             <DrawerHeader>
               <DrawerTitle>Fiber Channels</DrawerTitle>
             </DrawerHeader>
-            <ScrollArea className="max-h-[70vh] px-4 pb-8">{isReady && <FiberChannels />}</ScrollArea>
+            <div className="max-h-[70vh] overflow-y-auto px-4 pb-6">{isReady && <FiberChannels />}</div>
           </DrawerContent>
         </Drawer>
       </div>
@@ -158,7 +144,9 @@ export function FiberPage() {
               <h3 className="text-muted-foreground/70 text-[10px] font-bold tracking-wider uppercase">
                 Receive Payment
               </h3>
-              <p className="text-muted-foreground/50 mt-1 text-[10px]">Enter amount and expiry to generate an invoice.</p>
+              <p className="text-muted-foreground/50 mt-1 text-[10px]">
+                Enter amount and expiry to generate an invoice.
+              </p>
             </div>
             <div className="bg-background/50 border-border/30 focus-within:border-primary/30 flex flex-col gap-3 rounded-2xl border p-4 transition-all">
               <FiberCreateInvoice />

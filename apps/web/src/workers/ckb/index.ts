@@ -25,13 +25,7 @@ let teardownRpcProxy: (() => void) | null = null
 
 function startRpcProxy() {
   if (teardownRpcProxy) return
-  teardownRpcProxy = setupRpcProxyChannel(
-    () => getActiveClient(currentNetwork),
-    async (scripts) => {
-      const { ensureScripts } = await import("./client")
-      await ensureScripts(scripts)
-    }
-  )
+  teardownRpcProxy = setupRpcProxyChannel(getActiveClient, currentNetwork)
 }
 
 function stopRpcProxy() {

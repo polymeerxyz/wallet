@@ -42,7 +42,7 @@ export async function stopLightClient(): Promise<void> {
   }
 }
 
-export async function ensureScripts(scripts: Array<ScriptLike | ScriptInfoLike>) {
+export async function ensureScripts(scripts: Array<ScriptLike | ScriptInfoLike>, fromGenesis = false) {
   if (!lightClientWasm) return
 
   const existingScripts = await lightClientWasm.getScripts()
@@ -54,8 +54,11 @@ export async function ensureScripts(scripts: Array<ScriptLike | ScriptInfoLike>)
 
   if (newScripts.length === 0) return
 
-  const tip = await lightClientWasm.getTipHeader()
-  const startBlock = tip.number > numFrom(100) ? tip.number - numFrom(100) : numFrom(0)
+  let startBlock = numFrom(0)
+  if (!fromGenesis) {
+    const tip = await lightClientWasm.getTipHeader()
+    startBlock = tip.number > numFrom(100) ? tip.number - numFrom(100) : numFrom(0)
+  }
 
   const newStatuses = newScripts.map((script) => ({
     script,

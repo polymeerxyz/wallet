@@ -5,7 +5,7 @@ import { useFiberPeerStore } from "@/stores/fiber-peer.store"
 
 import { useFiberWorker } from "./use-fiber-worker"
 
-export function useChannels() {
+export function useChannels(enabled = true) {
   const worker = useFiberWorker()
   const network = useConfigStore((s) => s.network)
   const clientMode = useConfigStore((s) => s.clientMode)
@@ -15,7 +15,6 @@ export function useChannels() {
     queryKey: ["fiber-channels", network, clientMode],
     queryFn: async () => {
       const res = await worker.listChannels({})
-      // Only attempt reconnect if we have channels
       if (res.channels.length > 0) {
         try {
           const peersRes = await worker.listPeers()
@@ -36,6 +35,7 @@ export function useChannels() {
       }
       return res
     },
+    enabled,
     refetchInterval: 10000,
   })
 

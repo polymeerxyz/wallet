@@ -17,11 +17,15 @@ const createConfig = (
   isLightClient = false
 ) => {
   let rpcUrl: string
-  if (isLightClient) {
+  if (isLightClient && import.meta.env.PROD) {
     scripts = stripTypeidDeps(scripts)
     udtWhitelist = stripTypeidDeps(udtWhitelist)
     rpcUrl = `${self.location.origin}/ckb-rpc-proxy`
   } else {
+    if (isLightClient) {
+      scripts = stripTypeidDeps(scripts)
+      udtWhitelist = stripTypeidDeps(udtWhitelist)
+    }
     rpcUrl = network === "mainnet" ? "https://mainnet.ckb.dev/" : "https://testnet.ckb.dev/"
   }
   const config = {

@@ -15,7 +15,7 @@ catalog:
   "@nervosnetwork/fiber-js": "0.8.1"
   "@noble/curves": "2.2.0"
   "@scure/bip32": "2.2.0"
-  "@types/node": ^24
+  "@types/node": ^25
   "@types/react": ^19
   "@types/react-dom": ^19
   "@vitejs/plugin-react": ^6

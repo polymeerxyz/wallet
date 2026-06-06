@@ -9,13 +9,13 @@ catalog:
   "@eslint/js": ^10
   "@hugeicons/core-free-icons": ^4
   "@hugeicons/react": ^1
-  "@ledgerhq/hw-transport": "6.35.1"
-  "@ledgerhq/hw-transport-webhid": "6.35.1"
-  "@multiformats/multiaddr": "13.0.1"
+  "@ledgerhq/hw-transport": "6.35.3"
+  "@ledgerhq/hw-transport-webhid": "6.35.3"
+  "@multiformats/multiaddr": "13.0.3"
   "@nervosnetwork/fiber-js": "0.8.1"
   "@noble/curves": "2.2.0"
   "@scure/bip32": "2.2.0"
-  "@types/node": ^24
+  "@types/node": ^25
   "@types/react": ^19
   "@types/react-dom": ^19
   "@vitejs/plugin-react": ^6

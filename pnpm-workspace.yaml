@@ -5,17 +5,17 @@ packages:
 autoInstallPeers: true
 
 catalog:
-  "@ckb-ccc/core": "1.12.5"
+  "@ckb-ccc/core": "1.18.0"
   "@eslint/js": ^10
   "@hugeicons/core-free-icons": ^4
   "@hugeicons/react": ^1
-  "@ledgerhq/hw-transport": "6.35.1"
-  "@ledgerhq/hw-transport-webhid": "6.35.1"
-  "@multiformats/multiaddr": "13.0.1"
+  "@ledgerhq/hw-transport": "6.35.6"
+  "@ledgerhq/hw-transport-webhid": "6.36.0"
+  "@multiformats/multiaddr": "13.0.3"
   "@nervosnetwork/fiber-js": "0.8.1"
   "@noble/curves": "2.2.0"
   "@scure/bip32": "2.2.0"
-  "@types/node": ^24
+  "@types/node": ^26
   "@types/react": ^19
   "@types/react-dom": ^19
   "@vitejs/plugin-react": ^6
@@ -31,7 +31,7 @@ catalog:
   react-dom: ^19
   react-i18next: ^17
   tailwindcss: ^4
-  typescript: ^6
+  typescript: ^7
   typescript-eslint: ^8
   vite: ^8
   vite-plugin-svgr: ^5
@@ -50,6 +50,6 @@ onlyBuiltDependencies:
   - usb
 
 overrides:
-  "@ckb-ccc/core": "1.12.5"
+  "@ckb-ccc/core": "1.18.0"
 
 preferFrozenLockfile: true
